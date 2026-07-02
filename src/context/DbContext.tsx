@@ -134,6 +134,10 @@ interface DbContextType {
   dbLoaded: boolean;
   githubConnected: boolean;
   lastSync: string | null;
+  
+  isLocked: boolean;
+  lockScreen: () => void;
+  unlockScreen: (pin: string) => boolean;
 }
 
 const DbContext = createContext<DbContextType | undefined>(undefined);
@@ -189,6 +193,10 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [dbLoaded, setDbLoaded] = useState(false);
   const [githubConnected, setGithubConnected] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
+
+  const [isLocked, setIsLocked] = useState<boolean>(() => {
+    return localStorage.getItem('pos_db_is_locked') === 'true';
+  });
 
   // Load database from Firestore
   const loadAllFromFirestore = async () => {
@@ -421,6 +429,26 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       saveToStorage('audit_logs', updated);
       return updated;
     });
+  };
+
+  const lockScreen = () => {
+    setIsLocked(true);
+    localStorage.setItem('pos_db_is_locked', 'true');
+    logAudit('ล็อคหน้าจอ', 'system', currentUser.id, `ผู้ใช้งาน ${currentUser.fullname} ทำการล็อคหน้าจอ`);
+  };
+
+  const unlockScreen = (pin: string): boolean => {
+    // Current user's PIN or default 1234
+    const user = users.find(u => u.id === currentUser.id);
+    const validPin = user?.lock_pin || '1234';
+    
+    if (pin === validPin) {
+      setIsLocked(false);
+      localStorage.setItem('pos_db_is_locked', 'false');
+      logAudit('ปลดล็อคหน้าจอ', 'system', currentUser.id, `ผู้ใช้งาน ${currentUser.fullname} ทำการปลดล็อคหน้าจอ`);
+      return true;
+    }
+    return false;
   };
 
   // CATEGORIES OPERATIONS
@@ -1675,7 +1703,10 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         importDatabase,
         dbLoaded,
         githubConnected,
-        lastSync
+        lastSync,
+        isLocked,
+        lockScreen,
+        unlockScreen
       }}
     >
       {children}

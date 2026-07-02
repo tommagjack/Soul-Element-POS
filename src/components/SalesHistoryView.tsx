@@ -738,7 +738,7 @@ export const SalesHistoryView: React.FC = () => {
           }}
         >
           <div 
-            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl w-full max-w-md my-4 md:my-8 flex flex-col overflow-hidden animate-slide-up cursor-default"
+            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl w-full max-w-4xl h-[90vh] my-4 md:my-8 flex flex-col overflow-hidden animate-slide-up cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-[#EAF2EC] flex justify-between items-center bg-white sticky top-0 z-10">
@@ -757,8 +757,8 @@ export const SalesHistoryView: React.FC = () => {
             </div>
 
             {/* Receipt Content */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-4 bg-gray-50/30">
-              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 sm:p-8 text-[#2F3E34]/90 space-y-6 font-mono select-text shadow-sm relative overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50/30 flex justify-center">
+              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 sm:p-10 text-[#2F3E34]/90 space-y-8 font-mono select-text shadow-sm relative overflow-hidden w-full max-w-2xl">
                 {/* Decorative receipt edge */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#8FB996]/20"></div>
                 

@@ -16,6 +16,7 @@ import { PromotionsView } from './components/PromotionsView';
 import { UsersView } from './components/UsersView';
 import { SettingsView } from './components/SettingsView';
 import { SalesHistoryView } from './components/SalesHistoryView';
+import { LockScreen } from './components/LockScreen';
 import { Lock, CircleAlert, RefreshCw } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -152,9 +153,12 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderActiveView()}
-    </Layout>
+    <>
+      <LockScreen />
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        {renderActiveView()}
+      </Layout>
+    </>
   );
 };
 

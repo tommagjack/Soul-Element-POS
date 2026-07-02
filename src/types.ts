@@ -12,6 +12,7 @@ export interface User {
   phone?: string;
   status: 'active' | 'inactive';
   avatar?: string;
+  lock_pin?: string;
 }
 
 export interface RolePermission {

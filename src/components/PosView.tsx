@@ -24,7 +24,8 @@ import {
   Minus,
   RefreshCw,
   Clock,
-  Printer
+  Printer,
+  Lock
 } from 'lucide-react';
 
 interface CartItem {
@@ -45,7 +46,8 @@ export const PosView: React.FC = () => {
     recordSale,
     addCustomerPoints,
     showToast,
-    currentUser
+    currentUser,
+    lockScreen
   } = useDb();
 
   // Search & Filter
@@ -399,7 +401,34 @@ export const PosView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-130px)] overflow-hidden">
+    <div className="flex flex-col gap-6 h-[calc(100vh-130px)] overflow-hidden">
+      {/* POS Top Header */}
+      <div className="flex items-center justify-between shrink-0 px-1 animate-fade-in">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#8FB996]/10 flex items-center justify-center text-[#8FB996]">
+            <ShoppingCart className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-[#2F3E34] tracking-tight">ระบบจำหน่ายสินค้าหน้าร้าน (POS)</h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+              <p className="text-[10px] text-[#2F3E34]/40 font-medium uppercase tracking-wider">
+                กำลังปฏิบัติงาน: {currentUser.fullname} • {new Date().toLocaleDateString('th-TH')}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <button
+          onClick={lockScreen}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#EAF2EC] text-[#2F3E34] hover:bg-[#F8FAF7] transition-all text-xs font-bold shadow-sm cursor-pointer group"
+        >
+          <Lock className="w-4 h-4 text-[#8FB996] group-hover:scale-110 transition-transform" />
+          <span>ล็อคหน้าจอ</span>
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 flex-1 overflow-hidden">
       {/* LEFT SIDE: PRODUCTS GRID CATALOG */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-[#EAF2EC] p-5 h-full overflow-hidden">
         {/* Search and barcode scanner simulator */}
@@ -867,7 +896,7 @@ export const PosView: React.FC = () => {
       {/* MODAL 2: CHECKOUT MULTI-PAYMENT DRAWER */}
       {showCheckoutModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-lg animate-fade-in flex flex-col max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-4xl animate-fade-in flex flex-col max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#EAF2EC] mb-4">
               <h3 className="text-sm font-bold text-[#2F3E34]">หน้าต่างประมวลผลการชำระเงิน</h3>
               <button onClick={() => setShowCheckoutModal(false)} className="text-[#2F3E34]/40 hover:text-black font-semibold p-1">✕</button>
@@ -1054,11 +1083,11 @@ export const PosView: React.FC = () => {
           }}
         >
           <div 
-            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-sm my-4 md:my-8 flex flex-col animate-slide-up cursor-default"
+            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-4xl h-[90vh] my-4 md:my-8 flex flex-col animate-slide-up cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex-1 overflow-y-auto pr-1">
-              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 text-[#2F3E34]/90 space-y-5 font-mono select-text shadow-sm relative">
+            <div className="flex-1 overflow-y-auto pr-1 flex justify-center">
+              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 text-[#2F3E34]/90 space-y-5 font-mono select-text shadow-sm relative w-full max-w-2xl">
                 <div className="absolute top-0 left-0 w-full h-1 bg-[#8FB996]/30"></div>
                 
                 {/* Store Header Info */}
@@ -1204,6 +1233,7 @@ export const PosView: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
