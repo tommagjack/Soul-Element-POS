@@ -1,0 +1,6 @@
+{
+  "name": "ระบบขายสินค้าหน้าร้าน POS",
+  "description": "ระบบจัดการหน้าร้าน POS สไตล์ Relax Wellness ใช้งานง่าย รวดเร็ว และทันสมัย",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
