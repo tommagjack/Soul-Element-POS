@@ -356,13 +356,32 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   // Save changes helper to LocalStorage
   const saveToStorage = (key: string, data: any) => {
-    localStorage.setItem(`pos_db_${key}`, JSON.stringify(data));
+    try {
+      localStorage.setItem(`pos_db_${key}`, JSON.stringify(data));
+    } catch (e) {
+      console.error(`Error saving to localStorage (key: ${key}):`, e);
+      // If quota exceeded, we might want to warn the user or just ignore
+    }
   };
 
   // Helper to save document to Firestore in the background
+  const sanitizeForFirestore = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(v => sanitizeForFirestore(v));
+    } else if (obj !== null && typeof obj === 'object') {
+      return Object.fromEntries(
+        Object.entries(obj)
+          .filter(([_, v]) => v !== undefined)
+          .map(([k, v]) => [k, sanitizeForFirestore(v)])
+      );
+    }
+    return obj;
+  };
+
   const saveDocToFirestore = async (collectionName: string, id: string, data: any) => {
     try {
-      await setDoc(doc(db, collectionName, id), data);
+      const sanitized = sanitizeForFirestore(data);
+      await setDoc(doc(db, collectionName, id), sanitized);
     } catch (e) {
       console.error(`Error saving doc to Firestore (${collectionName}/${id}):`, e);
     }
@@ -911,50 +930,47 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     };
 
     // Update product stocks
-    setProducts(prev => {
-      const updated = prev.map(p => {
-        const item = saleData.items.find(i => i.product_id === p.id);
-        if (item) {
-          const newQty = Math.max(0, p.stock_qty - item.qty);
-          const updatedProd = { ...p, stock_qty: newQty };
-          saveDocToFirestore('products', p.id, updatedProd);
-          
-          // Notify if below min stock
-          if (p.type === 'product' && newQty <= p.min_stock) {
-            setTimeout(() => {
-               showToast(`⚠️ สินค้า "${p.name}" เหลือ ${newQty} ชิ้น (ต่ำกว่าสต็อกขั้นต่ำ!)`, 'warning', 6000);
-            }, 1000);
-          }
-          
-          return updatedProd;
+    const updatedProducts = products.map(p => {
+      const item = saleData.items.find(i => i.product_id === p.id);
+      if (item) {
+        const newQty = Math.max(0, p.stock_qty - item.qty);
+        const updatedProd = { ...p, stock_qty: newQty };
+        saveDocToFirestore('products', p.id, updatedProd);
+        
+        // Notify if below min stock
+        if (p.type === 'product' && newQty <= p.min_stock) {
+          setTimeout(() => {
+             showToast(`⚠️ สินค้า "${p.name}" เหลือ ${newQty} ชิ้น (ต่ำกว่าสต็อกขั้นต่ำ!)`, 'warning', 6000);
+          }, 1000);
         }
-        return p;
-      });
-      saveToStorage('products', updated);
-      
-      // Create stock movements for items sold
-      const newMovements: StockMovement[] = saleData.items.map(item => {
-        const pState = updated.find(p => p.id === item.product_id);
-        return {
-          id: `move-${Math.random().toString(36).substr(2, 9)}`,
-          product_id: item.product_id,
-          type: 'out',
-          qty: item.qty,
-          balance_qty: pState?.stock_qty || 0,
-          reason: `ขายผ่านเครื่อง POS ใบเสร็จ ${saleId}`,
-          user_fullname: currentUser.fullname,
-          created_at: new Date().toISOString()
-        };
-      });
-      
-      setStockMovements(mPrev => {
-        const mUpdated = [...newMovements, ...mPrev];
-        saveToStorage('stock_movements', mUpdated);
-        newMovements.forEach(m => saveDocToFirestore('stock_movements', m.id, m));
-        return mUpdated;
-      });
+        
+        return updatedProd;
+      }
+      return p;
+    });
+    setProducts(updatedProducts);
+    saveToStorage('products', updatedProducts);
 
-      return updated;
+    // Create stock movements for items sold
+    const newMovements: StockMovement[] = saleData.items.map(item => {
+      const pState = updatedProducts.find(p => p.id === item.product_id);
+      return {
+        id: `move-${Math.random().toString(36).substr(2, 9)}`,
+        product_id: item.product_id,
+        type: 'out',
+        qty: item.qty,
+        balance_qty: pState?.stock_qty || 0,
+        reason: `ขายผ่านเครื่อง POS ใบเสร็จ ${saleId}`,
+        user_fullname: currentUser.fullname,
+        created_at: new Date().toISOString()
+      };
+    });
+    
+    setStockMovements(mPrev => {
+      const mUpdated = [...newMovements, ...mPrev];
+      saveToStorage('stock_movements', mUpdated);
+      newMovements.forEach(m => saveDocToFirestore('stock_movements', m.id, m));
+      return mUpdated;
     });
 
     setSales(prev => {
