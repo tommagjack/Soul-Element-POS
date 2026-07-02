@@ -459,28 +459,22 @@ export const FinanceView: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3 px-5 text-right space-x-1.5">
-                      {fin.category !== 'รายรับจากการขาย' && fin.category !== 'ซื้อสินค้า' ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditFin(fin)}
-                            className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#2F3E34]/60 transition-colors inline-flex cursor-pointer"
-                            title="แก้ไข"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteFinTargetId(fin.id)}
-                            className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors inline-flex cursor-pointer"
-                            title="ลบ"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-[10px] text-gray-300 font-semibold italic">สร้างโดยระบบ</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditFin(fin)}
+                        className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-[#2F3E34]/60 transition-colors inline-flex cursor-pointer"
+                        title="แก้ไข"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteFinTargetId(fin.id)}
+                        className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors inline-flex cursor-pointer"
+                        title="ลบ"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))
