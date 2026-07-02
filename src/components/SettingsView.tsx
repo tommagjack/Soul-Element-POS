@@ -13,6 +13,7 @@ import {
   Receipt,
   FileText,
   Percent,
+  RefreshCw,
   Layers,
   CircleAlert,
   Inbox,
@@ -27,6 +28,7 @@ export const SettingsView: React.FC = () => {
     currentUser,
     switchCurrentUser,
     resetDatabase,
+    forceSync,
     auditLogs,
     showToast,
     githubConnected,
@@ -342,6 +344,23 @@ export const SettingsView: React.FC = () => {
                 );
               })}
             </div>
+          </div>
+
+          {/* Cloud Synchronization card */}
+          <div className="bg-white border border-[#EAF2EC] rounded-2xl p-5 space-y-4">
+            <h4 className="text-xs font-bold text-[#2F3E34] flex items-center gap-2 pb-1 border-b border-[#EAF2EC]/50">
+              <RefreshCw className="w-4.5 h-4.5 text-[#8FB996]" />
+              <span>ซิงค์ข้อมูลกับระบบคลาวด์ (Cloud Sync)</span>
+            </h4>
+            <p className="text-[11px] text-[#2F3E34]/55 leading-relaxed">
+              หากคุณพบว่าข้อมูลไม่ตรงกับเครื่องอื่น หรือข้อมูลที่แก้ไขหายไปหลังรีเฟรช คุณสามารถกดปุ่มนี้เพื่อดึงข้อมูลล่าสุดจากระบบ Cloud (Firebase) มาทับข้อมูลในเครื่องนี้ได้ทันที
+            </p>
+            <button
+              onClick={() => forceSync()}
+              className="w-full p-3 rounded-xl border border-[#8FB996] bg-[#8FB996]/5 text-[#2F3E34] text-xs font-bold hover:bg-[#8FB996]/10 transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+            >
+              <RefreshCw className="w-4 h-4" /> <span>ดึงข้อมูลล่าสุดจาก Cloud (Force Cloud Sync)</span>
+            </button>
           </div>
 
           {/* GitHub Integration card */}
