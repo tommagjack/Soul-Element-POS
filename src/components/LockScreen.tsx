@@ -74,7 +74,7 @@ export const LockScreen: React.FC = () => {
 
         {/* PIN Indicators */}
         <div className="flex gap-4 mb-10">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div 
               key={i}
               className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${

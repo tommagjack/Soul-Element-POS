@@ -20,7 +20,10 @@ import {
   Inbox,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Upload,
+  User as UserIcon
 } from 'lucide-react';
 
 export const UsersView: React.FC = () => {
@@ -52,6 +55,7 @@ export const UsersView: React.FC = () => {
   const [formPhone, setFormPhone] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formLockPin, setFormLockPin] = useState('');
+  const [formAvatar, setFormAvatar] = useState('');
 
   // Submit User
   const handleUserSubmit = (e: React.FormEvent) => {
@@ -67,7 +71,8 @@ export const UsersView: React.FC = () => {
       role: formRole,
       phone: formPhone || undefined,
       email: formEmail || undefined,
-      lock_pin: formLockPin || undefined
+      lock_pin: formLockPin || undefined,
+      avatar: formAvatar || undefined
     };
 
     if (editingUser) {
@@ -87,6 +92,7 @@ export const UsersView: React.FC = () => {
     setFormPhone('');
     setFormEmail('');
     setFormLockPin('');
+    setFormAvatar('');
     setShowUserModal(true);
   };
 
@@ -98,7 +104,23 @@ export const UsersView: React.FC = () => {
     setFormPhone(u.phone || '');
     setFormEmail(u.email || '');
     setFormLockPin(u.lock_pin || '');
+    setFormAvatar(u.avatar || '');
     setShowUserModal(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('❌ ขนาดไฟล์รูปภาพต้องไม่เกิน 2MB', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -356,12 +378,35 @@ export const UsersView: React.FC = () => {
       {/* MODAL: ADD/EDIT STAFF */}
       {showUserModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-sm animate-fade-in">
+          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto animate-fade-in">
             <h3 className="text-sm font-bold text-[#2F3E34] mb-4">
               {editingUser ? 'ปรับปรุงประวัติการจ้างงาน' : 'ลงทะเบียนสิทธิ์พนักงานใหม่'}
             </h3>
 
             <form onSubmit={handleUserSubmit} className="space-y-4">
+              {/* Avatar Selection */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative group">
+                  <div className="w-20 h-20 rounded-full bg-[#8FB996]/10 border-2 border-[#8FB996]/20 flex items-center justify-center overflow-hidden mb-2">
+                    {formAvatar ? (
+                      <img src={formAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon className="w-10 h-10 text-[#8FB996]/40" />
+                    )}
+                  </div>
+                  <label className="absolute bottom-1 right-0 w-8 h-8 bg-[#8FB996] text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:scale-110 transition-transform">
+                    <Camera className="w-4 h-4" />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                </div>
+                <p className="text-[10px] text-[#2F3E34]/40 font-medium">คลิกไอคอนเพื่อเปลี่ยนรูปโปรไฟล์</p>
+              </div>
+
               <div>
                 <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รหัสล็อกอินผู้ปฏิบัติงาน (Username)</label>
                 <input
