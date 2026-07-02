@@ -191,157 +191,157 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   // Load database from Firestore
-  useEffect(() => {
-    const loadAllFromFirestore = async () => {
-      try {
-        setDbLoaded(false);
+  const loadAllFromFirestore = async () => {
+    try {
+      setDbLoaded(false);
 
-        // Helper to load or seed an array collection in Firestore
-        const loadOrSeedCol = async <T extends { id: string }>(
-          collectionName: string,
-          initialData: T[],
-          setter: (data: T[]) => void
-        ): Promise<T[]> => {
-          const colRef = collection(db, collectionName);
-          const snapshot = await getDocs(colRef);
-          if (snapshot.empty) {
-            // Seed Firestore with initial data
-            if (initialData.length > 0) {
-              const batch = writeBatch(db);
-              initialData.forEach((item) => {
-                const docRef = doc(db, collectionName, item.id);
-                batch.set(docRef, item);
-              });
-              await batch.commit();
-            }
-            setter(initialData);
-            localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(initialData));
-            return initialData;
-          } else {
-            const data: T[] = [];
-            snapshot.forEach((docSnap) => {
-              data.push(docSnap.data() as T);
+      // Helper to load or seed an array collection in Firestore
+      const loadOrSeedCol = async <T extends { id: string }>(
+        collectionName: string,
+        initialData: T[],
+        setter: (data: T[]) => void
+      ): Promise<T[]> => {
+        const colRef = collection(db, collectionName);
+        const snapshot = await getDocs(colRef);
+        if (snapshot.empty) {
+          // Seed Firestore with initial data
+          if (initialData.length > 0) {
+            const batch = writeBatch(db);
+            initialData.forEach((item) => {
+              const docRef = doc(db, collectionName, item.id);
+              batch.set(docRef, item);
             });
-            setter(data);
-            localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(data));
-            return data;
+            await batch.commit();
           }
-        };
-
-        // Load array collections
-        await loadOrSeedCol('categories', INITIAL_CATEGORIES, setCategories);
-        await loadOrSeedCol('suppliers', INITIAL_SUPPLIERS, setSuppliers);
-        await loadOrSeedCol('products', INITIAL_PRODUCTS, setProducts);
-        await loadOrSeedCol('customers', INITIAL_CUSTOMERS, setCustomers);
-        const loadedUsers = await loadOrSeedCol('users', INITIAL_USERS, setUsers);
-        
-        // Identity Correction: If the primary owner is still the mockup name, update it to the user's real name
-        if (loadedUsers && loadedUsers.length > 0) {
-          const owner = loadedUsers.find(u => u.id === 'user-1' && u.fullname === 'คุณอรอุมา เลิศสุวรรณ');
-          if (owner) {
-            const updatedOwner = { ...owner, fullname: 'คุณขจรเดช มีทอง', username: 'owner_khajondech', email: 'khajondechmee@gmail.com' };
-            setUsers(prev => prev.map(u => u.id === 'user-1' ? updatedOwner : u));
-            saveDocToFirestore('users', 'user-1', updatedOwner);
-          }
+          setter(initialData);
+          localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(initialData));
+          return initialData;
+        } else {
+          const data: T[] = [];
+          snapshot.forEach((docSnap) => {
+            data.push(docSnap.data() as T);
+          });
+          setter(data);
+          localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(data));
+          return data;
         }
-        await loadOrSeedCol('roles', INITIAL_ROLES, setRoles);
-        await loadOrSeedCol('promotions', INITIAL_PROMOTIONS, setPromotions);
-        await loadOrSeedCol('coupons', INITIAL_COUPONS, setCoupons);
+      };
 
-        // Sync currentUser with loaded users so any Firestore updates to the current user (e.g. name, avatar) are correctly picked up
-        if (loadedUsers && loadedUsers.length > 0) {
+      // Load array collections
+      await loadOrSeedCol('categories', INITIAL_CATEGORIES, setCategories);
+      await loadOrSeedCol('suppliers', INITIAL_SUPPLIERS, setSuppliers);
+      await loadOrSeedCol('products', INITIAL_PRODUCTS, setProducts);
+      await loadOrSeedCol('customers', INITIAL_CUSTOMERS, setCustomers);
+      const loadedUsers = await loadOrSeedCol('users', INITIAL_USERS, setUsers);
+      
+      // Identity Correction: If the primary owner is still the mockup name, update it to the user's real name
+      if (loadedUsers && loadedUsers.length > 0) {
+        const owner = loadedUsers.find(u => u.id === 'user-1' && (u.fullname === 'คุณอรอุมา เลิศสุวรรณ' || u.fullname === 'Owner User'));
+        if (owner) {
+          const updatedOwner = { ...owner, fullname: 'คุณขจรเดช มีทอง', username: 'owner_khajondech', email: 'khajondechmee@gmail.com' };
+          setUsers(prev => prev.map(u => u.id === 'user-1' ? updatedOwner : u));
+          saveDocToFirestore('users', 'user-1', updatedOwner);
+        }
+      }
+      await loadOrSeedCol('roles', INITIAL_ROLES, setRoles);
+      await loadOrSeedCol('promotions', INITIAL_PROMOTIONS, setPromotions);
+      await loadOrSeedCol('coupons', INITIAL_COUPONS, setCoupons);
+
+      // Sync currentUser with loaded users so any Firestore updates to the current user (e.g. name, avatar) are correctly picked up
+      if (loadedUsers && loadedUsers.length > 0) {
+        const savedCurrentUserId = localStorage.getItem('pos_db_current_user_id');
+        const targetId = savedCurrentUserId || INITIAL_USERS[0].id;
+        const matchedUser = loadedUsers.find(u => u.id === targetId);
+        if (matchedUser) {
+          setCurrentUserState(matchedUser);
+        } else {
+          const ownerUser = loadedUsers.find(u => u.role === 'owner');
+          if (ownerUser) setCurrentUserState(ownerUser);
+        }
+      }
+
+      // Load settings (single document)
+      const settingsRef = doc(db, 'settings', 'store_config');
+      const settingsSnap = await getDoc(settingsRef);
+      if (settingsSnap.exists()) {
+        const data = settingsSnap.data() as StoreSettings;
+        setSettings(data);
+        localStorage.setItem('pos_db_settings', JSON.stringify(data));
+      } else {
+        await setDoc(settingsRef, DEFAULT_SETTINGS);
+        setSettings(DEFAULT_SETTINGS);
+        localStorage.setItem('pos_db_settings', JSON.stringify(DEFAULT_SETTINGS));
+      }
+
+      // Load transaction/log collections (no seed needed except audit_logs)
+      await loadOrSeedCol('stock_movements', [], setStockMovements);
+      await loadOrSeedCol('purchases', [], setPurchases);
+      await loadOrSeedCol('sales', [], setSales);
+      await loadOrSeedCol('financials', [], setFinancials);
+      
+      const initAuditLog = [
+        {
+          id: 'log-init',
+          user_fullname: 'ระบบอัตโนมัติ',
+          action: 'เริ่มต้นระบบ',
+          target_table: 'settings',
+          details: 'ระบบฐานข้อมูล POS เริ่มต้นทำงานในสไตล์ Relax Wellness สำเร็จ (เชื่อมต่อ Firebase)',
+          created_at: new Date().toISOString()
+        }
+      ];
+      await loadOrSeedCol('audit_logs', initAuditLog, setAuditLogs);
+
+      setDbLoaded(true);
+    } catch (err) {
+      console.error("Error loading database from Firestore, falling back to LocalStorage:", err);
+      
+      // Fallback to local storage loading
+      const loadFromLocalStorage = (key: string, initial: any, setter: any) => {
+        const stored = localStorage.getItem(`pos_db_${key}`);
+        if (stored) {
+          try {
+            setter(JSON.parse(stored));
+          } catch (e) {
+            setter(initial);
+          }
+        } else {
+          setter(initial);
+        }
+      };
+
+      loadFromLocalStorage('categories', INITIAL_CATEGORIES, setCategories);
+      loadFromLocalStorage('suppliers', INITIAL_SUPPLIERS, setSuppliers);
+      loadFromLocalStorage('products', INITIAL_PRODUCTS, setProducts);
+      loadFromLocalStorage('customers', INITIAL_CUSTOMERS, setCustomers);
+      loadFromLocalStorage('users', INITIAL_USERS, (loaded: User[]) => {
+        setUsers(loaded);
+        if (loaded && loaded.length > 0) {
           const savedCurrentUserId = localStorage.getItem('pos_db_current_user_id');
           const targetId = savedCurrentUserId || INITIAL_USERS[0].id;
-          const matchedUser = loadedUsers.find(u => u.id === targetId);
+          const matchedUser = loaded.find(u => u.id === targetId);
           if (matchedUser) {
             setCurrentUserState(matchedUser);
           } else {
-            const ownerUser = loadedUsers.find(u => u.role === 'owner');
+            const ownerUser = loaded.find(u => u.role === 'owner');
             if (ownerUser) setCurrentUserState(ownerUser);
           }
         }
+      });
+      loadFromLocalStorage('roles', INITIAL_ROLES, setRoles);
+      loadFromLocalStorage('promotions', INITIAL_PROMOTIONS, setPromotions);
+      loadFromLocalStorage('coupons', INITIAL_COUPONS, setCoupons);
+      loadFromLocalStorage('settings', DEFAULT_SETTINGS, setSettings);
+      loadFromLocalStorage('stock_movements', [], setStockMovements);
+      loadFromLocalStorage('purchases', [], setPurchases);
+      loadFromLocalStorage('sales', [], setSales);
+      loadFromLocalStorage('financials', [], setFinancials);
+      loadFromLocalStorage('audit_logs', [], setAuditLogs);
 
-        // Load settings (single document)
-        const settingsRef = doc(db, 'settings', 'store_config');
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-          const data = settingsSnap.data() as StoreSettings;
-          setSettings(data);
-          localStorage.setItem('pos_db_settings', JSON.stringify(data));
-        } else {
-          await setDoc(settingsRef, DEFAULT_SETTINGS);
-          setSettings(DEFAULT_SETTINGS);
-          localStorage.setItem('pos_db_settings', JSON.stringify(DEFAULT_SETTINGS));
-        }
+      setDbLoaded(true);
+    }
+  };
 
-        // Load transaction/log collections (no seed needed except audit_logs)
-        await loadOrSeedCol('stock_movements', [], setStockMovements);
-        await loadOrSeedCol('purchases', [], setPurchases);
-        await loadOrSeedCol('sales', [], setSales);
-        await loadOrSeedCol('financials', [], setFinancials);
-        
-        const initAuditLog = [
-          {
-            id: 'log-init',
-            user_fullname: 'ระบบอัตโนมัติ',
-            action: 'เริ่มต้นระบบ',
-            target_table: 'settings',
-            details: 'ระบบฐานข้อมูล POS เริ่มต้นทำงานในสไตล์ Relax Wellness สำเร็จ (เชื่อมต่อ Firebase)',
-            created_at: new Date().toISOString()
-          }
-        ];
-        await loadOrSeedCol('audit_logs', initAuditLog, setAuditLogs);
-
-        setDbLoaded(true);
-      } catch (err) {
-        console.error("Error loading database from Firestore, falling back to LocalStorage:", err);
-        
-        // Fallback to local storage loading
-        const loadFromLocalStorage = (key: string, initial: any, setter: any) => {
-          const stored = localStorage.getItem(`pos_db_${key}`);
-          if (stored) {
-            try {
-              setter(JSON.parse(stored));
-            } catch (e) {
-              setter(initial);
-            }
-          } else {
-            setter(initial);
-          }
-        };
-
-        loadFromLocalStorage('categories', INITIAL_CATEGORIES, setCategories);
-        loadFromLocalStorage('suppliers', INITIAL_SUPPLIERS, setSuppliers);
-        loadFromLocalStorage('products', INITIAL_PRODUCTS, setProducts);
-        loadFromLocalStorage('customers', INITIAL_CUSTOMERS, setCustomers);
-        loadFromLocalStorage('users', INITIAL_USERS, (loaded: User[]) => {
-          setUsers(loaded);
-          if (loaded && loaded.length > 0) {
-            const savedCurrentUserId = localStorage.getItem('pos_db_current_user_id');
-            const targetId = savedCurrentUserId || INITIAL_USERS[0].id;
-            const matchedUser = loaded.find(u => u.id === targetId);
-            if (matchedUser) {
-              setCurrentUserState(matchedUser);
-            } else {
-              const ownerUser = loaded.find(u => u.role === 'owner');
-              if (ownerUser) setCurrentUserState(ownerUser);
-            }
-          }
-        });
-        loadFromLocalStorage('roles', INITIAL_ROLES, setRoles);
-        loadFromLocalStorage('promotions', INITIAL_PROMOTIONS, setPromotions);
-        loadFromLocalStorage('coupons', INITIAL_COUPONS, setCoupons);
-        loadFromLocalStorage('settings', DEFAULT_SETTINGS, setSettings);
-        loadFromLocalStorage('stock_movements', [], setStockMovements);
-        loadFromLocalStorage('purchases', [], setPurchases);
-        loadFromLocalStorage('sales', [], setSales);
-        loadFromLocalStorage('financials', [], setFinancials);
-        loadFromLocalStorage('audit_logs', [], setAuditLogs);
-
-        setDbLoaded(true);
-      }
-    };
-
+  useEffect(() => {
     loadAllFromFirestore();
   }, []);
 

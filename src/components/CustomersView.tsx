@@ -34,7 +34,8 @@ export const CustomersView: React.FC = () => {
     addCustomer,
     editCustomer,
     deleteCustomer,
-    showToast
+    showToast,
+    settings
   } = useDb();
 
   // Search & Filter
@@ -163,7 +164,7 @@ export const CustomersView: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#F8FAF7] pb-4">
             <div>
               <h3 className="text-sm font-bold text-[#2F3E34]">ฐานข้อมูลสมาชิกสปาและสะสมคะแนน</h3>
-              <p className="text-xs text-[#2F3E34]/50">ตรวจสอบ จัดการรายชื่อระดับสมาชิกสะสมแต้ม MOKU ONSEN</p>
+              <p className="text-xs text-[#2F3E34]/50">ตรวจสอบ จัดการรายชื่อระดับสมาชิกสะสมแต้ม {settings.store_name}</p>
             </div>
             <button
               onClick={handleOpenAddCust}

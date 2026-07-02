@@ -37,7 +37,7 @@ export const SettingsView: React.FC = () => {
 
   // Form states initialized with database settings
   const [storeName, setStoreName] = useState(settings.store_name);
-  const [storePhone, setStorePhone] = useState(settings.phone || '081-111-2222');
+  const [storePhone, setStorePhone] = useState(settings.phone || '');
   const [storeTaxId, setStoreTaxId] = useState(settings.tax_id || '');
   const [storeAddress, setStoreAddress] = useState(settings.address || '');
   const [storeLogo, setStoreLogo] = useState(settings.logo || '');
@@ -48,6 +48,22 @@ export const SettingsView: React.FC = () => {
   const [accountNo, setAccountNo] = useState(settings.account_no || '');
   const [accountName, setAccountName] = useState(settings.account_name || '');
   const [qrCodeUrl, setQrCodeUrl] = useState(settings.qr_code_url || '');
+
+  // Synchronize local states when settings change (e.g. after loading from Firestore)
+  React.useEffect(() => {
+    setStoreName(settings.store_name);
+    setStorePhone(settings.phone || '081-111-2222');
+    setStoreTaxId(settings.tax_id || '');
+    setStoreAddress(settings.address || '');
+    setStoreLogo(settings.logo || '');
+    setVatRate(settings.vat_rate);
+    setReceiptHeader(settings.receipt_header || '');
+    setReceiptFooter(settings.receipt_footer || '');
+    setBankName(settings.bank_name || '');
+    setAccountNo(settings.account_no || '');
+    setAccountName(settings.account_name || '');
+    setQrCodeUrl(settings.qr_code_url || '');
+  }, [settings]);
 
   const handleSettingsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
