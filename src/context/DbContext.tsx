@@ -203,23 +203,32 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       ): Promise<T[]> => {
         const colRef = collection(db, collectionName);
         const snapshot = await getDocs(colRef);
+        
+        // Try to get from local storage first to see if we have existing data to seed if Firestore is empty
+        const stored = localStorage.getItem(`pos_db_${collectionName}`);
+        const localData = stored ? JSON.parse(stored) : [];
+        const seedData = localData.length > 0 ? localData : initialData;
+
         if (snapshot.empty) {
-          // Seed Firestore with initial data
-          if (initialData.length > 0) {
+          // Seed Firestore with local data or initial data
+          if (seedData.length > 0) {
             const batch = writeBatch(db);
-            initialData.forEach((item) => {
-              const docRef = doc(db, collectionName, item.id);
-              batch.set(docRef, item);
+            seedData.forEach((item: any) => {
+              if (item && item.id) {
+                const docRef = doc(db, collectionName, item.id);
+                batch.set(docRef, item);
+              }
             });
             await batch.commit();
           }
-          setter(initialData);
-          localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(initialData));
-          return initialData;
+          setter(seedData);
+          localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(seedData));
+          return seedData;
         } else {
           const data: T[] = [];
           snapshot.forEach((docSnap) => {
-            data.push(docSnap.data() as T);
+            const docData = docSnap.data();
+            data.push({ id: docSnap.id, ...docData } as T);
           });
           setter(data);
           localStorage.setItem(`pos_db_${collectionName}`, JSON.stringify(data));

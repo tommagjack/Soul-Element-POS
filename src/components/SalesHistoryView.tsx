@@ -20,7 +20,8 @@ import {
   Info,
   Tag,
   Receipt,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 
 export const SalesHistoryView: React.FC = () => {
@@ -32,13 +33,26 @@ export const SalesHistoryView: React.FC = () => {
     currentUser,
     deleteSale,
     editSale,
-    showToast
+    showToast,
+    forceSync
   } = useDb();
 
   // Search & Filtering
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      await forceSync();
+    } catch (err) {
+      showToast('❌ ไม่สามารถซิงค์ข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,25 +108,36 @@ export const SalesHistoryView: React.FC = () => {
   };
 
   // Filter & Sort Sales (Newest first)
-  const filteredSales = [...sales]
+  const filteredSales = [...(sales || [])]
     .filter(sale => {
+      if (!sale) return false;
+      
       // Search by Sale ID or Customer name
       const custName = getCustomerName(sale.customer_id).toLowerCase();
+      const safeId = (sale.id || "").toLowerCase();
+      const safeNotes = (sale.notes || "").toLowerCase();
+      const safeUser = (sale.user_fullname || "").toLowerCase();
+      const safeCreatedAt = sale.created_at || "";
+
       const matchesSearch =
-        sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        safeId.includes(searchQuery.toLowerCase()) ||
         custName.includes(searchQuery.toLowerCase()) ||
-        (sale.notes && sale.notes.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        sale.user_fullname.toLowerCase().includes(searchQuery.toLowerCase());
+        safeNotes.includes(searchQuery.toLowerCase()) ||
+        safeUser.includes(searchQuery.toLowerCase());
 
       // Filter by Payment Method
       const matchesPayment = paymentFilter === 'all' || sale.payment_method === paymentFilter;
 
       // Filter by Date (YYYY-MM-DD match with sale.created_at ISO string)
-      const matchesDate = !dateFilter || sale.created_at.startsWith(dateFilter);
+      const matchesDate = !dateFilter || safeCreatedAt.startsWith(dateFilter);
 
       return matchesSearch && matchesPayment && matchesDate;
     })
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
 
   // Pagination Calculations
   const totalItems = filteredSales.length;
@@ -403,7 +428,20 @@ export const SalesHistoryView: React.FC = () => {
         </div>
 
         {/* Small Analytics Widget */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all text-xs font-bold cursor-pointer shadow-sm ${
+              isSyncing 
+                ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed' 
+                : 'bg-white border-[#EAF2EC] text-[#2F3E34] hover:bg-[#F8FAF7]'
+            }`}
+          >
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'กำลังซิงค์...' : 'ดึงข้อมูลล่าสุด'}</span>
+          </button>
+
           <div className="bg-[#8FB996]/5 border border-[#8FB996]/15 rounded-xl px-4 py-2.5 text-center shrink-0">
             <span className="text-[10px] text-[#2F3E34]/50 font-bold block uppercase tracking-wide">ยอดขายรวมบิลที่เลือก</span>
             <span className="text-base font-mono font-extrabold text-[#2F3E34]">
@@ -503,14 +541,14 @@ export const SalesHistoryView: React.FC = () => {
             <tbody className="divide-y divide-[#EAF2EC]/55 text-[13px]">
               {paginatedSales.length > 0 ? (
                 paginatedSales.map((sale) => {
-                  const totalQty = sale.items.reduce((sum, item) => sum + item.qty, 0);
+                  const totalQty = (sale.items || []).reduce((sum, item) => sum + item.qty, 0);
                   return (
                     <tr key={sale.id} className="hover:bg-[#F8FAF7]/40 transition-colors">
                       {/* Date & Time */}
                       <td className="py-3 px-5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 text-xs text-[#2F3E34]/70">
                           <Clock className="w-3.5 h-3.5 text-[#2F3E34]/30" />
-                          <span>{new Date(sale.created_at).toLocaleString('th-TH')}</span>
+                          <span>{sale.created_at ? new Date(sale.created_at).toLocaleString('th-TH') : 'ไม่ระบุเวลา'}</span>
                         </div>
                       </td>
 
@@ -604,8 +642,36 @@ export const SalesHistoryView: React.FC = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-[#2F3E34]/40 font-medium">
-                    🔍 ไม่พบประวัติการขายที่ตรงกับคำค้นหาหรือตัวกรอง
+                  <td colSpan={8} className="py-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                        <Receipt className="w-8 h-8" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-[#2F3E34]">
+                          {searchQuery || paymentFilter !== 'all' || dateFilter 
+                            ? '🔍 ไม่พบข้อมูลที่ตรงกับตัวกรองของคุณ' 
+                            : 'ยังไม่มีประวัติรายการธุรกรรมการขาย'}
+                        </p>
+                        <p className="text-xs text-[#2F3E34]/40 max-w-[280px] mx-auto leading-relaxed">
+                          {searchQuery || paymentFilter !== 'all' || dateFilter
+                            ? 'ลองล้างการค้นหาหรือปรับเปลี่ยนตัวกรองวันที่เพื่อตรวจสอบข้อมูลอีกครั้ง'
+                            : 'เมื่อคุณทำรายการขายที่หน้าเครื่อง POS รายการจะมาปรากฏที่นี่โดยอัตโนมัติ'}
+                        </p>
+                      </div>
+                      {(searchQuery || paymentFilter !== 'all' || dateFilter) && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setPaymentFilter('all');
+                            setDateFilter('');
+                          }}
+                          className="mt-2 text-xs font-bold text-[#8FB996] hover:underline cursor-pointer"
+                        >
+                          ล้างตัวกรองทั้งหมด
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}

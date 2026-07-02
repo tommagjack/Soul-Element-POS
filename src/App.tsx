@@ -19,7 +19,7 @@ import { SalesHistoryView } from './components/SalesHistoryView';
 import { Lock, CircleAlert, RefreshCw } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { currentUser, rolesPermissions, settings } = useDb();
+  const { currentUser, rolesPermissions, settings, dbLoaded } = useDb();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   // Dynamically update document title based on Store Name
@@ -28,6 +28,25 @@ const AppContent: React.FC = () => {
       document.title = settings.store_name;
     }
   }, [settings.store_name]);
+
+  // Show loading screen while DB is syncing
+  if (!dbLoaded) {
+    return (
+      <div className="fixed inset-0 bg-[#F8FAF7] flex flex-col items-center justify-center z-[9999] select-none">
+        <div className="relative w-20 h-20 mb-8">
+          <div className="absolute inset-0 border-4 border-[#8FB996]/10 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-[#8FB996] border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <RefreshCw className="w-8 h-8 text-[#8FB996] animate-pulse" />
+          </div>
+        </div>
+        <h2 className="text-lg font-bold text-[#2F3E34] mb-2 font-sans tracking-tight">กำลังซิงค์ข้อมูลกับคลาวด์...</h2>
+        <p className="text-xs text-[#2F3E34]/50 max-w-xs text-center leading-relaxed">
+          ระบบกำลังเชื่อมต่อกับฐานข้อมูลอัจฉริยะ (Firestore) เพื่อดึงข้อมูลประวัติการขายและสต็อกสินค้าล่าสุดให้คุณ
+        </p>
+      </div>
+    );
+  }
 
   // Verify Role-Based Access Control
   const hasAccess = (tab: string): boolean => {
