@@ -19,8 +19,15 @@ import { SalesHistoryView } from './components/SalesHistoryView';
 import { Lock, CircleAlert, RefreshCw } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { currentUser, rolesPermissions } = useDb();
+  const { currentUser, rolesPermissions, settings } = useDb();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+
+  // Dynamically update document title based on Store Name
+  React.useEffect(() => {
+    if (settings.store_name) {
+      document.title = settings.store_name;
+    }
+  }, [settings.store_name]);
 
   // Verify Role-Based Access Control
   const hasAccess = (tab: string): boolean => {

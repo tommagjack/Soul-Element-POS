@@ -1046,30 +1046,42 @@ export const PosView: React.FC = () => {
 
       {/* MODAL 3: COMPLETED RECEIPT MODAL */}
       {showReceiptModal && completedSale && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-sm animate-fade-in flex flex-col max-h-[90vh] overflow-hidden">
-            <div className="flex-1 overflow-y-auto pr-1 text-xs">
-              {/* Receipt Body Visual Paper */}
-              <div className="bg-amber-50/15 border border-[#EBCB8B]/15 rounded-xl p-4 text-[#2F3E34]/90 space-y-4 font-mono select-text">
-                <div className="text-center space-y-1 flex flex-col items-center justify-center">
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-start justify-center z-50 p-4 overflow-y-auto animate-fade-in cursor-pointer"
+          onClick={() => {
+            setShowReceiptModal(false);
+            setCompletedSale(null);
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl p-6 w-full max-w-sm my-4 md:my-8 flex flex-col animate-slide-up cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex-1 overflow-y-auto pr-1">
+              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 text-[#2F3E34]/90 space-y-5 font-mono select-text shadow-sm relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#8FB996]/30"></div>
+                
+                {/* Store Header Info */}
+                <div className="text-center space-y-1 flex flex-col items-center justify-center pt-2">
                   {settings.logo && (
                     <img 
                       src={settings.logo} 
                       alt="Store Logo" 
-                      className="max-h-12 max-w-full object-contain mb-1 rounded-lg" 
+                      className="max-h-14 max-w-full object-contain mb-2 rounded-lg" 
                       referrerPolicy="no-referrer"
                     />
                   )}
                   <h4 className="text-sm font-bold font-sans text-center">{settings.store_name}</h4>
-                  <p className="text-[10px] font-sans text-[#2F3E34]/60 leading-normal text-center">{settings.address}</p>
+                  <p className="text-[10px] font-sans text-[#2F3E34]/60 leading-normal text-center max-w-[200px]">{settings.address}</p>
                   {settings.tax_id && <p className="text-[10px] text-[#2F3E34]/50 text-center">เลขผู้เสียภาษี: {settings.tax_id}</p>}
-                  <p className="text-[10px] text-[#2F3E34]/40 mt-1">----------------------------------------</p>
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-3"></div>
                 </div>
 
+                {/* Metadata Header */}
                 <div className="space-y-1 text-[10px] text-[#2F3E34]/60">
                   <div className="flex justify-between">
                     <span>เลขที่ใบรับเงิน:</span>
-                    <span>{completedSale.id}</span>
+                    <span className="font-bold">{completedSale.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>วันที่ทำรายการ:</span>
@@ -1085,114 +1097,108 @@ export const PosView: React.FC = () => {
                       <span>{selectedCustomer.fullname}</span>
                     </div>
                   )}
-                  <p className="text-[10px] text-[#2F3E34]/40 mt-1">----------------------------------------</p>
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-3"></div>
                 </div>
 
                 {/* Items Breakdown */}
-                <div className="space-y-2 text-[10px]">
+                <div className="space-y-2.5">
                   {completedSale.items.map((item: any, idx: number) => {
                     const matchedProd = products.find(p => p.id === item.product_id);
                     return (
                       <div key={idx} className="space-y-0.5">
-                        <div className="flex justify-between">
-                          <span className="font-sans font-semibold text-[#2F3E34]">{matchedProd?.name}</span>
-                          <span>฿{item.total.toLocaleString()}</span>
+                        <div className="flex justify-between font-bold text-[#2F3E34] text-[11px]">
+                          <span className="font-sans line-clamp-1">{matchedProd?.name || 'รายการสินค้า'}</span>
+                          <span className="font-mono">฿{item.total.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between text-[#2F3E34]/50">
+                        <div className="flex justify-between text-[10px] text-[#2F3E34]/50">
                           <span>{item.qty} {matchedProd?.unit || 'ชิ้น'} x ฿{item.price.toLocaleString()}</span>
-                          {item.discount > 0 && <span>ส่วนลด: -฿{item.discount * item.qty}</span>}
+                          {item.discount > 0 && <span>ลด: -฿{item.discount * item.qty}</span>}
                         </div>
                       </div>
                     );
                   })}
-                  <p className="text-[10px] text-[#2F3E34]/40 mt-1">----------------------------------------</p>
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-3"></div>
                 </div>
 
                 {/* Receipt Calculations */}
-                <div className="space-y-1 text-[10px]">
+                <div className="space-y-1.5 text-[10px]">
                   <div className="flex justify-between text-[#2F3E34]/70">
                     <span>มูลค่าสินค้ารวม:</span>
                     <span>฿{completedSale.total_amount.toLocaleString()}</span>
                   </div>
                   {completedSale.discount_amount > 0 && (
-                    <div className="flex justify-between text-[#E57373]">
-                      <span>ส่วนลดโปรโมชั่นสุขภาพ:</span>
+                    <div className="flex justify-between text-red-500 font-bold">
+                      <span>ส่วนลดโปรโมชั่น:</span>
                       <span>-฿{completedSale.discount_amount.toLocaleString()}</span>
                     </div>
                   )}
                   {settings.vat_rate > 0 && (
-                    <>
-                      <div className="flex justify-between text-[#2F3E34]/50">
+                    <div className="bg-gray-50/50 p-1.5 rounded-lg space-y-0.5 my-1">
+                      <div className="flex justify-between text-[9px] text-[#2F3E34]/40">
                         <span>ฐานภาษี (Vat. Excluded):</span>
                         <span>฿{(completedSale.final_amount - completedSale.vat_amount).toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between text-[#2F3E34]/50">
-                        <span>ภาษีมูลค่าเพิ่ม (VAT Included {settings.vat_rate}%):</span>
+                      <div className="flex justify-between text-[9px] text-[#2F3E34]/40">
+                        <span>ภาษีมูลค่าเพิ่ม ({settings.vat_rate}%):</span>
                         <span>฿{completedSale.vat_amount.toLocaleString()}</span>
                       </div>
-                    </>
+                    </div>
                   )}
-                  <div className="flex justify-between font-bold text-base text-[#2F3E34] pt-1.5 border-t border-dashed border-[#2F3E34]/20 mt-1">
-                    <span>ยอดสุทธิ (Net Total):</span>
-                    <span>฿{completedSale.final_amount.toLocaleString()}</span>
+                  <div className="flex justify-between font-extrabold text-[16px] text-[#2F3E34] pt-2 border-t border-dashed border-[#2F3E34]/20 mt-1">
+                    <span>ยอดสุทธิ:</span>
+                    <span className="font-mono">฿{completedSale.final_amount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-[#2F3E34]/60 pt-1">
-                    <span>ชำระผ่าน:</span>
-                    <span>
-                      {completedSale.payment_method === 'cash' ? 'เงินสด' : completedSale.payment_method === 'promptpay' ? 'QR PromptPay' : completedSale.payment_method === 'transfer' ? 'โอนเงินธนาคาร' : completedSale.payment_method === 'credit' ? 'บัตรเครดิต' : 'E-Wallet'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-[#2F3E34]/60">
-                    <span>รับเงินมา:</span>
+                  <div className="flex justify-between text-[#2F3E34]/60 pt-1 text-[11px] font-bold">
+                    <span>ชำระผ่าน ({completedSale.payment_method === 'cash' ? 'เงินสด' : 'โอน/พร้อมเพย์'}):</span>
                     <span>฿{completedSale.received_amount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-[#6CBF84] font-bold">
+                  <div className="flex justify-between text-amber-600 font-extrabold text-[14px]">
                     <span>เงินทอน:</span>
                     <span>฿{completedSale.change_amount.toLocaleString()}</span>
                   </div>
                 </div>
 
-                <div className="text-center pt-3 border-t border-dashed border-[#2F3E34]/20 text-[10px] space-y-1">
-                  <p className="font-sans font-semibold">ขอให้ท่านมีสุขภาพกายใจที่ดีและร่มเย็น</p>
-                  <p className="font-sans text-[#2F3E34]/50 font-medium">*** ขอบคุณที่ไว้วางใจในการบริการอโรมา ***</p>
+                <div className="text-center pt-5 border-t border-dashed border-[#2F3E34]/20 space-y-1.5">
+                  <p className="font-sans font-bold text-[11px]">ขอให้ท่านมีสุขภาพกายใจที่ดีและร่มเย็น</p>
+                  <p className="font-sans text-[#2F3E34]/40 text-[9px] font-medium tracking-widest uppercase">*** Thank You ***</p>
                 </div>
               </div>
             </div>
 
             {/* Receipt Actions */}
-            <div className="grid grid-cols-2 gap-2 mt-5 shrink-0">
+            <div className="grid grid-cols-2 gap-3 mt-6 shrink-0">
               <button
                 onClick={() => {
                   showToast('🖨 กำลังพิมพ์ใบเสร็จ (จำลองการทำงานเครื่องพิมพ์)...', 'success');
                 }}
-                className="py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                className="py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 shadow-sm"
               >
-                <Printer className="w-3.5 h-3.5" /> <span>จำลองเครื่องพิมพ์</span>
+                <Printer className="w-4 h-4 text-gray-500" /> <span>พิมพ์สลิป</span>
               </button>
               <button
                 onClick={() => {
                   showToast('📥 ดาวน์โหลดไฟล์ใบเสร็จ PDF สำเร็จ', 'success');
                 }}
-                className="py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                className="py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 shadow-sm"
               >
-                <Download className="w-3.5 h-3.5" /> <span>บันทึกเป็น PDF</span>
+                <Download className="w-4 h-4 text-gray-500" /> <span>ไฟล์ PDF</span>
               </button>
               <button
                 onClick={() => {
                   showToast('💬 ส่งใบเสร็จรับเงินให้ลูกค้าผ่านไลน์เรียบร้อย', 'success');
                 }}
-                className="py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                className="py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 shadow-sm"
               >
-                <Share2 className="w-3.5 h-3.5" /> <span>แชร์สลิปส่ง LINE</span>
+                <Share2 className="w-4 h-4 text-[#06C755]" /> <span>ส่ง LINE</span>
               </button>
               <button
                 onClick={() => {
                   setShowReceiptModal(false);
                   setCompletedSale(null);
                 }}
-                className="py-2 rounded-xl bg-[#8FB996] hover:bg-[#8FB996]/90 text-white text-xs font-bold shadow-sm cursor-pointer text-center"
+                className="py-3 rounded-xl bg-[#8FB996] hover:bg-[#7da885] text-white text-xs font-extrabold shadow-sm cursor-pointer text-center transition-all active:scale-95"
               >
-                ทำรายการบิลต่อไป
+                รายการใหม่
               </button>
             </div>
           </div>

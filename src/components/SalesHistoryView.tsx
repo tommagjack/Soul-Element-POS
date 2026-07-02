@@ -664,71 +664,83 @@ export const SalesHistoryView: React.FC = () => {
 
       {/* MODAL: VIEW DETAILS RECEIPT */}
       {showDetailsModal && selectedSale && (
-        <div className="fixed inset-0 bg-[#2F3E34]/35 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-none animate-fade-in">
-          <div className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
-            <div className="p-4 border-b border-[#EAF2EC] flex justify-between items-center bg-white sticky top-0">
-              <span className="text-xs font-bold text-[#2F3E34] flex items-center gap-1.5">
-                <Receipt className="w-4 h-4 text-[#8FB996]" /> ดูบิลใบเสร็จเลขที่: {selectedSale.id}
+        <div 
+          className="fixed inset-0 bg-[#2F3E34]/35 backdrop-blur-xs flex items-start justify-center z-50 p-4 overflow-y-auto animate-fade-in cursor-pointer"
+          onClick={() => {
+            setSelectedSale(null);
+            setShowDetailsModal(false);
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl border border-[#EAF2EC] shadow-2xl w-full max-w-md my-4 md:my-8 flex flex-col overflow-hidden animate-slide-up cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-[#EAF2EC] flex justify-between items-center bg-white sticky top-0 z-10">
+              <span className="text-sm font-bold text-[#2F3E34] flex items-center gap-1.5">
+                <Receipt className="w-4 h-4 text-[#8FB996]" /> รายละเอียดใบเสร็จ: {selectedSale.id}
               </span>
               <button
                 onClick={() => {
                   setSelectedSale(null);
                   setShowDetailsModal(false);
                 }}
-                className="p-1 rounded-lg hover:bg-gray-100 text-[#2F3E34]/40 hover:text-[#2F3E34] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-red-50 text-[#2F3E34]/40 hover:text-red-500 transition-all cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Receipt Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="bg-amber-50/15 border border-[#EBCB8B]/15 rounded-xl p-4 text-[#2F3E34]/90 space-y-4 font-mono select-text">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4 bg-gray-50/30">
+              <div className="bg-white border border-[#EAF2EC] rounded-xl p-5 sm:p-8 text-[#2F3E34]/90 space-y-6 font-mono select-text shadow-sm relative overflow-hidden">
+                {/* Decorative receipt edge */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#8FB996]/20"></div>
+                
                 {/* Store Header */}
-                <div className="text-center space-y-1 flex flex-col items-center justify-center">
+                <div className="text-center space-y-2 flex flex-col items-center justify-center pt-2">
                   {settings.logo && (
                     <img
                       src={settings.logo}
                       alt="Store Logo"
-                      className="max-h-12 max-w-full object-contain mb-1 rounded-lg"
+                      className="max-h-16 max-w-full object-contain mb-2 rounded-lg"
                       referrerPolicy="no-referrer"
                     />
                   )}
-                  <h4 className="text-sm font-bold font-sans text-center">{settings.store_name}</h4>
-                  <p className="text-[10px] font-sans text-[#2F3E34]/60 leading-normal text-center">{settings.address}</p>
-                  {settings.tax_id && <p className="text-[10px] text-[#2F3E34]/50 text-center">เลขผู้เสียภาษี: {settings.tax_id}</p>}
-                  <p className="text-[10px] text-[#2F3E34]/40 mt-1">----------------------------------------</p>
+                  <h4 className="text-base font-bold font-sans text-[#2F3E34]">{settings.store_name}</h4>
+                  <p className="text-[11px] font-sans text-[#2F3E34]/60 leading-normal max-w-[240px] mx-auto">{settings.address}</p>
+                  {settings.tax_id && <p className="text-[11px] text-[#2F3E34]/50">เลขผู้เสียภาษี: {settings.tax_id}</p>}
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-4"></div>
                 </div>
 
                 {/* Sales Metadata */}
-                <div className="space-y-1 text-[10px] text-[#2F3E34]/60">
+                <div className="space-y-1.5 text-[11px] text-[#2F3E34]/70">
                   <div className="flex justify-between">
-                    <span>เลขที่ใบเสร็จ:</span>
-                    <span>{selectedSale.id}</span>
+                    <span className="text-[#2F3E34]/40">เลขที่ใบเสร็จ:</span>
+                    <span className="font-bold">{selectedSale.id}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>วันที่ทำรายการ:</span>
+                    <span className="text-[#2F3E34]/40">วันที่รายการ:</span>
                     <span>{new Date(selectedSale.created_at).toLocaleString('th-TH')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>พนักงานแคชเชียร์:</span>
+                    <span className="text-[#2F3E34]/40">พนักงานแคชเชียร์:</span>
                     <span>{selectedSale.user_fullname}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>สมาชิกร้านค้า:</span>
-                    <span>{getCustomerName(selectedSale.customer_id)}</span>
+                    <span className="text-[#2F3E34]/40">สมาชิกร้านค้า:</span>
+                    <span className="font-semibold">{getCustomerName(selectedSale.customer_id)}</span>
                   </div>
                 </div>
 
                 {/* Products Table list */}
-                <div className="space-y-2 text-[10px]">
-                  <p className="text-[10px] text-[#2F3E34]/40">----------------------------------------</p>
+                <div className="space-y-3">
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-4"></div>
                   <table className="w-full text-left leading-relaxed">
                     <thead>
-                      <tr className="text-[#2F3E34]/45 border-b border-[#2F3E34]/5 font-bold">
-                        <th className="pb-1">รายละเอียดสินค้า (Item)</th>
-                        <th className="pb-1 text-right">จำนวน (Qty)</th>
-                        <th className="pb-1 text-right">รวม (Total)</th>
+                      <tr className="text-[#2F3E34]/45 border-b border-[#2F3E34]/5 font-bold text-[10px] uppercase tracking-wider">
+                        <th className="pb-2">รายการสินค้า</th>
+                        <th className="pb-2 text-right">จำนวน</th>
+                        <th className="pb-2 text-right">รวม</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-dashed divide-[#2F3E34]/5">
@@ -736,80 +748,91 @@ export const SalesHistoryView: React.FC = () => {
                         const prod = products.find(p => p.id === item.product_id);
                         return (
                           <tr key={item.id} className="text-[#2F3E34]/85">
-                            <td className="py-1.5 pr-2">
-                              <span className="font-sans font-semibold block">{prod?.name || 'ไม่พบบันทึกสินค้า'}</span>
-                              <span className="text-[8px] text-[#2F3E34]/50">฿{item.price.toLocaleString()} ต่อชิ้น {item.discount > 0 && `(ลด ฿${item.discount})`}</span>
+                            <td className="py-2.5 pr-2">
+                              <span className="font-sans font-bold block text-[12px]">{prod?.name || 'รายการสินค้า'}</span>
+                              <div className="flex gap-2 text-[10px] text-[#2F3E34]/50 mt-0.5">
+                                <span>฿{item.price.toLocaleString()} / ชิ้น</span>
+                                {item.discount > 0 && <span className="text-green-600 font-bold">ลด ฿{item.discount}</span>}
+                              </div>
                             </td>
-                            <td className="py-1.5 text-right font-semibold">{item.qty} ชิ้น</td>
-                            <td className="py-1.5 text-right font-bold text-xs">฿{item.total.toLocaleString()}</td>
+                            <td className="py-2.5 text-right font-bold text-[11px]">{item.qty}</td>
+                            <td className="py-2.5 text-right font-bold text-[12px]">฿{item.total.toLocaleString()}</td>
                           </tr>
                         );
                       })}
                     </tbody>
                   </table>
-                  <p className="text-[10px] text-[#2F3E34]/40">----------------------------------------</p>
+                  <div className="w-full border-t border-dashed border-[#2F3E34]/10 my-4"></div>
                 </div>
 
                 {/* Financial Breakdowns */}
-                <div className="space-y-1 text-[10px] text-[#2F3E34]/70">
+                <div className="space-y-2 text-[11px] text-[#2F3E34]/70">
                   <div className="flex justify-between">
-                    <span>ยอดรวมสินค้า (Subtotal):</span>
+                    <span>ยอดรวมสินค้า:</span>
                     <span>฿{selectedSale.total_amount.toLocaleString()}</span>
                   </div>
                   {selectedSale.discount_amount > 0 && (
                     <div className="flex justify-between text-green-700 font-bold">
-                      <span>ส่วนลดรวมพิเศษ (Discount):</span>
+                      <span>ส่วนลดรวม:</span>
                       <span>-฿{selectedSale.discount_amount.toLocaleString()}</span>
                     </div>
                   )}
                   {settings.vat_rate > 0 && (
-                    <>
-                      <div className="flex justify-between text-[#2F3E34]/50">
+                    <div className="bg-gray-50/50 p-2 rounded-lg space-y-1 my-2">
+                      <div className="flex justify-between text-[10px] text-[#2F3E34]/40">
                         <span>ฐานภาษี (Vat. Excluded):</span>
                         <span>฿{(selectedSale.final_amount - selectedSale.vat_amount).toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between text-[#2F3E34]/50">
-                        <span>ภาษีมูลค่าเพิ่ม (VAT Included {settings.vat_rate}%):</span>
+                      <div className="flex justify-between text-[10px] text-[#2F3E34]/40">
+                        <span>ภาษีมูลค่าเพิ่ม ({settings.vat_rate}%):</span>
                         <span>฿{selectedSale.vat_amount.toLocaleString()}</span>
                       </div>
-                    </>
+                    </div>
                   )}
-                  <div className="flex justify-between font-bold text-xs text-[#2F3E34] pt-1.5 border-t border-dashed border-[#2F3E34]/20 mt-1">
-                    <span>ยอดสุทธิ (Net Total):</span>
-                    <span>฿{selectedSale.final_amount.toLocaleString()}</span>
+                  
+                  <div className="flex justify-between font-extrabold text-[15px] text-[#2F3E34] pt-3 border-t border-dashed border-[#2F3E34]/20 mt-2">
+                    <span>ยอดสุทธิ:</span>
+                    <span className="font-mono">฿{selectedSale.final_amount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span>รับเงินโดย ({getPaymentLabel(selectedSale.payment_method).split(' ')[0]}):</span>
+                  
+                  <div className="flex justify-between text-[12px] font-bold text-[#8FB996] mt-1">
+                    <span>รับเงิน ({getPaymentLabel(selectedSale.payment_method).split(' ')[0]}):</span>
                     <span>฿{selectedSale.received_amount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs font-bold text-amber-700 pt-0.5">
-                    <span>เงินทอนลูกค้า (Change):</span>
+                  
+                  <div className="flex justify-between text-[13px] font-extrabold text-amber-600">
+                    <span>เงินทอน:</span>
                     <span>฿{selectedSale.change_amount.toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* Receipt Footer */}
-                <div className="text-center pt-3 border-t border-dashed border-[#2F3E34]/20 text-[10px] space-y-1">
-                  <p className="font-sans font-semibold">ขอให้ท่านมีสุขภาพกายใจที่ดีและร่มเย็น</p>
-                  <p className="font-sans text-[#2F3E34]/50 font-medium">*** ขอบคุณที่ไว้วางใจในการบริการ ***</p>
+                <div className="text-center pt-6 border-t border-dashed border-[#2F3E34]/20 space-y-2">
+                  <p className="font-sans font-bold text-[12px]">ขอให้ท่านมีสุขภาพกายใจที่ดีและร่มเย็น</p>
+                  <p className="font-sans text-[#2F3E34]/40 text-[10px] font-medium tracking-widest uppercase">*** Thank You ***</p>
+                  
+                  {/* Fake barcode for aesthetic */}
+                  <div className="flex justify-center pt-2 opacity-20 grayscale">
+                    <div className="h-8 w-40 bg-[repeating-linear-gradient(90deg,#000,#000_1px,#fff_1px,#fff_4px)]"></div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Actions Footer */}
-            <div className="p-4 bg-gray-50 border-t border-[#EAF2EC] flex gap-2">
+            <div className="p-4 bg-white border-t border-[#EAF2EC] flex gap-3 sticky bottom-0 z-10">
               <button
                 onClick={() => handlePrint(selectedSale)}
-                className="flex-1 py-2 bg-[#8FB996] text-white hover:bg-[#8FB996]/95 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                className="flex-1 py-3 bg-[#8FB996] text-white hover:bg-[#7da885] text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
               >
-                <Printer className="w-4 h-4" /> พิมพ์ใบเสร็จ (Print)
+                <Printer className="w-4 h-4" /> พิมพ์ใบเสร็จ
               </button>
               <button
                 onClick={() => {
                   setSelectedSale(null);
                   setShowDetailsModal(false);
                 }}
-                className="px-4 py-2 border border-[#EAF2EC] hover:bg-gray-100 text-xs font-semibold rounded-xl text-[#2F3E34]/70 cursor-pointer"
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-xl transition-all active:scale-95"
               >
                 ปิดหน้าจอ
               </button>
@@ -817,6 +840,7 @@ export const SalesHistoryView: React.FC = () => {
           </div>
         </div>
       )}
+
 
       {/* MODAL: DELETE SALE CONFIRMATION */}
       {showDeleteModal && saleToDelete && (
