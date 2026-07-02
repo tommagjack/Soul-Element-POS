@@ -86,7 +86,7 @@ interface DbContextType {
   deleteSupplier: (id: string) => boolean;
 
   addProduct: (product: Omit<Product, 'id' | 'stock_qty'> & { initial_stock: number }) => void;
-  editProduct: (id: string, product: Omit<Product, 'id' | 'stock_qty'>) => void;
+  editProduct: (id: string, product: Omit<Product, 'id'>) => void;
   deleteProduct: (id: string) => boolean;
   adjustStock: (productId: string, qtyChange: number, reason: string, type: 'in' | 'out' | 'adjust') => void;
   receivePurchase: (supplierId: string, items: { product_id: string; qty: number; cost_price: number }[]) => void;
@@ -501,8 +501,30 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     showToast(`เพิ่มสินค้า "${newProd.name}" สำเร็จ`, 'success');
   };
 
-  const editProduct = (id: string, prodData: Omit<Product, 'id' | 'stock_qty'>) => {
-    const updated = products.map(p => p.id === id ? { ...p, ...prodData } : p);
+  const editProduct = (id: string, prodData: Omit<Product, 'id'>) => {
+    const updated = products.map(p => {
+      if (p.id === id) {
+        // If stock_qty has changed, log a movement
+        if (prodData.stock_qty !== undefined && prodData.stock_qty !== p.stock_qty) {
+          const newMovement: StockMovement = {
+            id: `move-${Math.random().toString(36).substr(2, 9)}`,
+            product_id: id,
+            type: 'adjust',
+            qty: Math.abs(prodData.stock_qty - p.stock_qty),
+            balance_qty: prodData.stock_qty,
+            reason: 'แก้ไขจำนวนสต๊อกโดยตรงจากหน้าข้อมูลสินค้า',
+            user_fullname: currentUser.fullname,
+            created_at: new Date().toISOString()
+          };
+          
+          setStockMovements(prev => [newMovement, ...prev]);
+          saveToStorage('stock_movements', [newMovement, ...stockMovements]);
+          saveDocToFirestore('stock_movements', newMovement.id, newMovement);
+        }
+        return { ...p, ...prodData };
+      }
+      return p;
+    });
     setProducts(updated);
     saveToStorage('products', updated);
     const updatedItem = updated.find(p => p.id === id);

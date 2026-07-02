@@ -68,7 +68,7 @@ export const ProductsView: React.FC = () => {
   const [formUnit, setFormUnit] = useState('ขวด');
   const [formSupplierId, setFormSupplierId] = useState('');
   const [formMinStock, setFormMinStock] = useState(5);
-  const [formInitialStock, setFormInitialStock] = useState(0);
+  const [formStockQty, setFormStockQty] = useState(0);
   const [formDescription, setFormDescription] = useState('');
 
   // Handle Sort Toggle
@@ -122,7 +122,7 @@ export const ProductsView: React.FC = () => {
     setFormUnit('ขวด');
     setFormSupplierId(suppliers[0]?.id || '');
     setFormMinStock(5);
-    setFormInitialStock(10);
+    setFormStockQty(10);
     setFormDescription('');
     setShowProdModal(true);
   };
@@ -141,7 +141,7 @@ export const ProductsView: React.FC = () => {
     setFormUnit(prod.unit);
     setFormSupplierId(prod.supplier_id);
     setFormMinStock(prod.min_stock);
-    setFormInitialStock(0); // unused for editing
+    setFormStockQty(prod.stock_qty);
     setFormDescription(prod.description || '');
     setShowProdModal(true);
   };
@@ -169,6 +169,7 @@ export const ProductsView: React.FC = () => {
       unit: formUnit,
       supplier_id: formSupplierId,
       min_stock: Number(formMinStock) || 0,
+      stock_qty: Number(formStockQty) || 0,
       status: 'active' as const,
       description: formDescription
     };
@@ -176,7 +177,7 @@ export const ProductsView: React.FC = () => {
     if (editingProduct) {
       editProduct(editingProduct.id, payload);
     } else {
-      addProduct({ ...payload, initial_stock: Number(formInitialStock) || 0 });
+      addProduct({ ...payload, initial_stock: payload.stock_qty });
     }
     setShowProdModal(false);
   };
@@ -537,17 +538,17 @@ export const ProductsView: React.FC = () => {
                   />
                 </div>
 
-                {!editingProduct && (
-                  <div>
-                    <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">สต็อกสินค้าเริ่มต้น</label>
-                    <input
-                      type="number"
-                      value={formInitialStock}
-                      onChange={(e) => setFormInitialStock(Number(e.target.value) || 0)}
-                      className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">
+                    {editingProduct ? 'จำนวนสต๊อกปัจจุบัน' : 'สต็อกสินค้าเริ่มต้น'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formStockQty}
+                    onChange={(e) => setFormStockQty(Number(e.target.value) || 0)}
+                    className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996] font-bold text-[#8FB996]"
+                  />
+                </div>
 
                 <div className="md:col-span-2">
                   <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รูปภาพตัวสินค้า (URL แหล่งอ้างอิง)</label>
