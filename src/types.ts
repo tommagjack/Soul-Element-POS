@@ -62,6 +62,8 @@ export interface Product {
   stock_qty: number;
   status: 'active' | 'inactive';
   description?: string;
+  type: 'product' | 'service';
+  created_at: string;
 }
 
 export interface Customer {

@@ -100,10 +100,10 @@ interface DbContextType {
   deleteSale: (id: string) => void;
   editSale: (id: string, updatedSale: Sale) => void;
   
-  addFinancialRecord: (record: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>) => void;
-  addMultipleFinancialRecords: (records: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>[]) => void;
+  addFinancialRecord: (record: Omit<IncomeExpense, 'id' | 'user_fullname'> & { created_at?: string }) => void;
+  addMultipleFinancialRecords: (records: (Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'> & { created_at?: string })[]) => void;
   deleteFinancialRecord: (id: string) => void;
-  editFinancialRecord: (id: string, record: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>) => void;
+  editFinancialRecord: (id: string, record: Omit<IncomeExpense, 'id' | 'user_fullname'>) => void;
 
   addPromotion: (promo: Omit<Promotion, 'id'>) => void;
   editPromotion: (id: string, promo: Omit<Promotion, 'id'>) => void;
@@ -518,8 +518,8 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     });
     saveDocToFirestore('products', newProd.id, newProd);
     
-    // Create stock movement for initial stock
-    if (initial_stock > 0) {
+    // Create stock movement for initial stock (ONLY for physical products)
+    if (initial_stock > 0 && newProd.type === 'product') {
       const newMovement: StockMovement = {
         id: `move-${Math.random().toString(36).substr(2, 9)}`,
         product_id: newProd.id,
@@ -539,8 +539,8 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       saveDocToFirestore('stock_movements', newMovement.id, newMovement);
     }
 
-    logAudit('เพิ่มสินค้าใหม่', 'products', newProd.id, `เพิ่มสินค้า: "${newProd.name}" รหัสบาร์โค้ด: ${newProd.barcode} สต็อกเริ่มต้น: ${initial_stock}`);
-    showToast(`เพิ่มสินค้า "${newProd.name}" สำเร็จ`, 'success');
+    logAudit('เพิ่มสินค้าใหม่', 'products', newProd.id, `เพิ่ม ${newProd.type === 'service' ? 'บริการ' : 'สินค้า'}: "${newProd.name}" รหัสบาร์โค้ด: ${newProd.barcode} ${newProd.type === 'product' ? `สต็อกเริ่มต้น: ${initial_stock}` : ''}`);
+    showToast(`เพิ่ม${newProd.type === 'service' ? 'บริการ' : 'สินค้า'} "${newProd.name}" สำเร็จ`, 'success');
   };
 
   const editProduct = (id: string, prodData: Omit<Product, 'id'>) => {
@@ -549,8 +549,8 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     setProducts(prev => {
       const updated = prev.map(p => {
         if (p.id === id) {
-          // If stock_qty has changed, log a movement
-          if (prodData.stock_qty !== undefined && prodData.stock_qty !== p.stock_qty) {
+          // If stock_qty has changed, log a movement (ONLY for physical products)
+          if (p.type === 'product' && prodData.stock_qty !== undefined && prodData.stock_qty !== p.stock_qty) {
             const newMovement: StockMovement = {
               id: `move-${Math.random().toString(36).substr(2, 9)}`,
               product_id: id,
@@ -582,8 +582,8 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       if (updatedItem) saveDocToFirestore('products', id, updatedItem);
     }, 0);
 
-    logAudit('แก้ไขข้อมูลสินค้า', 'products', id, `แก้ไขข้อมูลสินค้า: "${prodData.name}"`);
-    showToast('แก้ไขข้อมูลสินค้าสำเร็จ', 'success');
+    logAudit('แก้ไขข้อมูลสินค้า', 'products', id, `แก้ไขข้อมูล: "${prodData.name}" (ประเภท: ${prodData.type === 'service' ? 'บริการ' : 'สินค้า'})`);
+    showToast(`อัปเดตข้อมูล "${prodData.name}" เรียบร้อย`, 'success');
   };
 
   const deleteProduct = (id: string): boolean => {
@@ -911,7 +911,7 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           saveDocToFirestore('products', p.id, updatedProd);
           
           // Notify if below min stock
-          if (newQty <= p.min_stock) {
+          if (p.type === 'product' && newQty <= p.min_stock) {
             setTimeout(() => {
                showToast(`⚠️ สินค้า "${p.name}" เหลือ ${newQty} ชิ้น (ต่ำกว่าสต็อกขั้นต่ำ!)`, 'warning', 6000);
             }, 1000);
@@ -1209,12 +1209,12 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   // INCOME & EXPENSE LOGS
-  const addFinancialRecord = (recordData: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>) => {
+  const addFinancialRecord = (recordData: Omit<IncomeExpense, 'id' | 'user_fullname'> & { created_at?: string }) => {
     const newRecord: IncomeExpense = {
       id: `${recordData.type === 'income' ? 'inc' : 'exp'}-${Math.random().toString(36).substr(2, 9)}`,
       ...recordData,
       user_fullname: currentUser.fullname,
-      created_at: new Date().toISOString()
+      created_at: recordData.created_at || new Date().toISOString()
     };
     const updated = [newRecord, ...financials];
     setFinancials(updated);
@@ -1226,12 +1226,12 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     showToast(`ลงรายการ ${thType} "${recordData.category}" สำเร็จ`, 'success');
   };
 
-  const addMultipleFinancialRecords = (records: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>[]) => {
+  const addMultipleFinancialRecords = (records: (Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'> & { created_at?: string })[]) => {
     const newRecords: IncomeExpense[] = records.map(recordData => ({
       id: `${recordData.type === 'income' ? 'inc' : 'exp'}-${Math.random().toString(36).substr(2, 9)}`,
       ...recordData,
       user_fullname: currentUser.fullname,
-      created_at: new Date().toISOString()
+      created_at: recordData.created_at || new Date().toISOString()
     }));
     setFinancials(prev => {
       const updated = [...newRecords, ...prev];
@@ -1256,7 +1256,7 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     showToast('ลบรายการทางบัญชีสำเร็จ', 'success');
   };
 
-  const editFinancialRecord = (id: string, recordData: Omit<IncomeExpense, 'id' | 'created_at' | 'user_fullname'>) => {
+  const editFinancialRecord = (id: string, recordData: Omit<IncomeExpense, 'id' | 'user_fullname'>) => {
     const updated = financials.map(f => f.id === id ? { ...f, ...recordData } : f);
     setFinancials(updated);
     saveToStorage('financials', updated);

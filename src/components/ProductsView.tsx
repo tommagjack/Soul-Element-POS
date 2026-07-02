@@ -69,6 +69,7 @@ export const ProductsView: React.FC = () => {
   const [formSupplierId, setFormSupplierId] = useState('');
   const [formMinStock, setFormMinStock] = useState(5);
   const [formStockQty, setFormStockQty] = useState(0);
+  const [formType, setFormType] = useState<'product' | 'service'>('product');
   const [formDescription, setFormDescription] = useState('');
 
   // Handle Sort Toggle
@@ -123,6 +124,7 @@ export const ProductsView: React.FC = () => {
     setFormSupplierId(suppliers[0]?.id || '');
     setFormMinStock(5);
     setFormStockQty(10);
+    setFormType('product');
     setFormDescription('');
     setShowProdModal(true);
   };
@@ -142,6 +144,7 @@ export const ProductsView: React.FC = () => {
     setFormSupplierId(prod.supplier_id);
     setFormMinStock(prod.min_stock);
     setFormStockQty(prod.stock_qty);
+    setFormType(prod.type || 'product');
     setFormDescription(prod.description || '');
     setShowProdModal(true);
   };
@@ -168,8 +171,9 @@ export const ProductsView: React.FC = () => {
       member_price: Number(formMemberPrice) || 0,
       unit: formUnit,
       supplier_id: formSupplierId,
-      min_stock: Number(formMinStock) || 0,
-      stock_qty: Number(formStockQty) || 0,
+      min_stock: formType === 'service' ? 0 : (Number(formMinStock) || 0),
+      stock_qty: formType === 'service' ? 999999 : (Number(formStockQty) || 0),
+      type: formType,
       status: 'active' as const,
       description: formDescription
     };
@@ -288,7 +292,7 @@ export const ProductsView: React.FC = () => {
                 </th>
                 <th className="py-4 px-4 cursor-pointer hover:bg-gray-100/50" onClick={() => toggleSort('name')}>
                   <div className="flex items-center gap-1">
-                    <span>ชื่อสินค้าร้านสุขภาพ</span>
+                    <span>ชื่อสินค้า / บริการ</span>
                     {sortBy === 'name' && (sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
                   </div>
                 </th>
@@ -330,7 +334,10 @@ export const ProductsView: React.FC = () => {
                         <p className="text-[10px] text-[#2F3E34]/40 font-mono">BC: {p.barcode}</p>
                       </td>
                       <td className="py-3 px-4">
-                        <p className="font-semibold text-[#2F3E34] line-clamp-1 max-w-[200px]">{p.name}</p>
+                        <p className="font-semibold text-[#2F3E34] line-clamp-1 max-w-[200px]">
+                          {p.name}
+                          {p.type === 'service' && <span className="ml-2 text-[9px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded font-bold uppercase">Service</span>}
+                        </p>
                         <p className="text-[10px] text-[#2F3E34]/50 font-medium line-clamp-1 max-w-[200px]">{p.description || '-'}</p>
                       </td>
                       <td className="py-3 px-4 text-[#2F3E34]/70">
@@ -343,13 +350,19 @@ export const ProductsView: React.FC = () => {
                         <p className="text-[10px] text-[#2F3E34]/40">สมาชิก: ฿{p.member_price.toLocaleString()}</p>
                       </td>
                       <td className="py-3 px-4">
-                        <p className={`font-semibold font-mono ${isLowStock ? 'text-[#E57373]' : 'text-[#2F3E34]'}`}>
-                          {p.stock_qty} {p.unit}
-                        </p>
-                        {isLowStock && (
-                          <span className="text-[9px] text-[#E57373] bg-[#E57373]/10 px-1.5 py-0.5 rounded-full font-bold">
-                            ต่ำกว่าขั้นต่ำ {p.min_stock}
-                          </span>
+                        {p.type === 'product' ? (
+                          <>
+                            <p className={`font-semibold font-mono ${isLowStock ? 'text-[#E57373]' : 'text-[#2F3E34]'}`}>
+                              {p.stock_qty} {p.unit}
+                            </p>
+                            {isLowStock && (
+                              <span className="text-[9px] text-[#E57373] bg-[#E57373]/10 px-1.5 py-0.5 rounded-full font-bold">
+                                ต่ำกว่าขั้นต่ำ {p.min_stock}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-[#2F3E34]/40 font-semibold italic">ไม่จำกัด</p>
                         )}
                       </td>
                       <td className="py-3 px-4 text-[#2F3E34]/50 truncate max-w-[120px]" title={supName}>
@@ -421,6 +434,24 @@ export const ProductsView: React.FC = () => {
             </div>
 
             <form onSubmit={handleProductSubmit} className="flex-1 overflow-y-auto space-y-4 pr-1">
+              {/* Type Selection */}
+              <div className="flex gap-2 p-1 bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl mb-2">
+                <button
+                  type="button"
+                  onClick={() => setFormType('product')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formType === 'product' ? 'bg-[#8FB996] text-white shadow-sm' : 'text-[#2F3E34]/50 hover:bg-gray-100'}`}
+                >
+                  สินค้า (Product)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormType('service')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formType === 'service' ? 'bg-[#8FB996] text-white shadow-sm' : 'text-[#2F3E34]/50 hover:bg-gray-100'}`}
+                >
+                  บริการ (Service)
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รหัส SKU คลัง</label>
@@ -528,27 +559,31 @@ export const ProductsView: React.FC = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">เกณฑ์ขั้นต่ำเตือนใกล้หมด</label>
-                  <input
-                    type="number"
-                    value={formMinStock}
-                    onChange={(e) => setFormMinStock(Number(e.target.value) || 0)}
-                    className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
-                  />
-                </div>
+                {formType === 'product' && (
+                  <>
+                    <div>
+                      <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">เกณฑ์ขั้นต่ำเตือนใกล้หมด</label>
+                      <input
+                        type="number"
+                        value={formMinStock}
+                        onChange={(e) => setFormMinStock(Number(e.target.value) || 0)}
+                        className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
+                      />
+                    </div>
 
-                <div>
-                  <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">
-                    {editingProduct ? 'จำนวนสต๊อกปัจจุบัน' : 'สต็อกสินค้าเริ่มต้น'}
-                  </label>
-                  <input
-                    type="number"
-                    value={formStockQty}
-                    onChange={(e) => setFormStockQty(Number(e.target.value) || 0)}
-                    className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996] font-bold text-[#8FB996]"
-                  />
-                </div>
+                    <div>
+                      <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">
+                        {editingProduct ? 'จำนวนสต๊อกปัจจุบัน' : 'สต็อกสินค้าเริ่มต้น'}
+                      </label>
+                      <input
+                        type="number"
+                        value={formStockQty}
+                        onChange={(e) => setFormStockQty(Number(e.target.value) || 0)}
+                        className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996] font-bold text-[#8FB996]"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="md:col-span-2">
                   <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รูปภาพตัวสินค้า (URL แหล่งอ้างอิง)</label>

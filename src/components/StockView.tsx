@@ -391,7 +391,7 @@ export const StockView: React.FC = () => {
                       className="w-full text-xs bg-white border border-[#EAF2EC] rounded-xl px-3 py-1.5 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
                     >
                       <option value="">-- กรุณาเลือกสินค้าสุขภาพ --</option>
-                      {products.map(p => (
+                      {products.filter(p => p.type === 'product').map(p => (
                         <option key={p.id} value={p.id}>{p.name} (คงเหลือ: {p.stock_qty} {p.unit})</option>
                       ))}
                     </select>
@@ -667,7 +667,8 @@ export const StockView: React.FC = () => {
                   onChange={(e) => setAdjProductId(e.target.value)}
                   className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
                 >
-                  {products.map(p => (
+                  <option value="">-- เลือกรายการเพื่อปรับปรุง --</option>
+                  {products.filter(p => p.type === 'product').map(p => (
                     <option key={p.id} value={p.id}>{p.name} (คงเหลือ: {p.stock_qty} {p.unit})</option>
                   ))}
                 </select>

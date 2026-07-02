@@ -125,7 +125,8 @@ export const PosView: React.FC = () => {
 
   // Quick Action: Add item to cart
   const addToCart = (product: Product) => {
-    if (product.stock_qty <= 0) {
+    const isService = product.type === 'service';
+    if (!isService && product.stock_qty <= 0) {
       showToast(`⚠️ สินค้า "${product.name}" หมดคลังชั่วคราว`, 'warning');
       return;
     }
@@ -133,7 +134,7 @@ export const PosView: React.FC = () => {
     const idx = cart.findIndex(item => item.product.id === product.id);
     if (idx !== -1) {
       const currentQtyInCart = cart[idx].qty;
-      if (currentQtyInCart >= product.stock_qty) {
+      if (!isService && currentQtyInCart >= product.stock_qty) {
         showToast(`⚠️ ไม่สามารถเพิ่มได้ เนื่องจากสินค้าในคลังมีเพียง ${product.stock_qty} ชิ้น`, 'warning');
         return;
       }
@@ -155,7 +156,8 @@ export const PosView: React.FC = () => {
     }
 
     const item = cart[idx];
-    if (newQty > item.product.stock_qty) {
+    const isService = item.product.type === 'service';
+    if (!isService && newQty > item.product.stock_qty) {
       showToast(`⚠️ สินค้าในสต็อกเหลือเพียง ${item.product.stock_qty} ชิ้น`, 'warning');
       return;
     }
@@ -459,7 +461,7 @@ export const PosView: React.FC = () => {
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {filteredProducts.map(p => {
-                const isLowStock = p.stock_qty <= p.min_stock;
+                const isLowStock = p.type === 'product' && p.stock_qty <= p.min_stock;
                 return (
                   <button
                     key={p.id}
@@ -508,7 +510,7 @@ export const PosView: React.FC = () => {
                         )}
                       </div>
                       <p className="text-[9px] text-[#2F3E34]/40 font-medium font-mono">
-                        คงเหลือ: {p.stock_qty} {p.unit}
+                        {p.type === 'service' ? 'บริการไม่จำกัด' : `คงเหลือ: ${p.stock_qty} ${p.unit}`}
                       </p>
                     </div>
                   </button>

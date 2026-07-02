@@ -58,7 +58,7 @@ export const DashboardView: React.FC<{ setActiveTab: (tab: string) => void }> = 
 
   const billsTodayCount = salesToday.length;
   const totalProductsCount = products.length;
-  const lowStockProducts = products.filter(p => p.stock_qty <= p.min_stock && p.status === 'active');
+  const lowStockProducts = products.filter(p => p.type === 'product' && p.stock_qty <= p.min_stock && p.status === 'active');
 
   // Profit calculation (revenue minus COGS / cost of goods sold)
   const calculateCOGSMargin = (saleList: typeof sales) => {

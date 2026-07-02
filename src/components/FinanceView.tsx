@@ -50,6 +50,7 @@ export const FinanceView: React.FC = () => {
   const [finAmount, setFinAmount] = useState<number>(0);
   const [finDesc, setFinDesc] = useState('');
   const [finImage, setFinImage] = useState('');
+  const [finDate, setFinDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Financial categorizations
   const categoriesMap = {
@@ -70,6 +71,7 @@ export const FinanceView: React.FC = () => {
     setFinAmount(fin.amount);
     setFinDesc(fin.description);
     setFinImage(fin.ref_image || '');
+    setFinDate(new Date(fin.created_at).toISOString().split('T')[0]);
     setShowFormModal(true);
   };
 
@@ -79,6 +81,7 @@ export const FinanceView: React.FC = () => {
     setFinAmount(0);
     setFinDesc('');
     setFinImage('');
+    setFinDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleFinSubmit = (e: React.FormEvent) => {
@@ -97,7 +100,8 @@ export const FinanceView: React.FC = () => {
       category: finCategory,
       amount: Number(finAmount) || 0,
       description: finDesc,
-      ref_image: finImage || undefined
+      ref_image: finImage || undefined,
+      created_at: finDate ? new Date(finDate).toISOString() : new Date().toISOString()
     };
 
     if (editingFin) {
@@ -112,6 +116,7 @@ export const FinanceView: React.FC = () => {
     setFinAmount(0);
     setFinDesc('');
     setFinImage('');
+    setFinDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleExportExcel = () => {
@@ -546,6 +551,17 @@ export const FinanceView: React.FC = () => {
                 >
                   รายจ่าย (Expense)
                 </button>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">วันที่รายการ (Date)</label>
+                <input
+                  type="date"
+                  required
+                  value={finDate}
+                  onChange={(e) => setFinDate(e.target.value)}
+                  className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
+                />
               </div>
 
               <div>
