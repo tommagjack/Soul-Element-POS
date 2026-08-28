@@ -17,7 +17,8 @@ import {
   Layers,
   CircleAlert,
   Inbox,
-  CreditCard
+  CreditCard,
+  Upload
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -173,13 +174,31 @@ export const SettingsView: React.FC = () => {
                 <div className="md:col-span-2">
                   <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">URL รูปภาพโลโก้ร้าน (Store Logo Image URL)</label>
                   <div className="flex gap-4 items-center">
-                    <input
-                      type="text"
-                      placeholder="เช่น https://example.com/logo.png"
-                      value={storeLogo}
-                      onChange={(e) => setStoreLogo(e.target.value)}
-                      className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
-                    />
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="วาง URL รูปภาพที่นี่ หรือกดไอคอนขวาเพื่ออัปโหลด"
+                        value={storeLogo}
+                        onChange={(e) => setStoreLogo(e.target.value)}
+                        className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
+                      />
+                      <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors">
+                        <Upload className="w-4 h-4" />
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setStoreLogo(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                     {storeLogo && (
                       <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0">
                         <img src={storeLogo} alt="Logo Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
@@ -263,13 +282,31 @@ export const SettingsView: React.FC = () => {
                   <div>
                     <label className="text-[10px] text-[#2F3E34]/55 font-semibold block mb-1">URL รูปภาพ QR Code สำหรับสแกนจ่าย (QR Code Image URL)</label>
                     <div className="flex gap-4 items-center">
-                      <input
-                        type="text"
-                        placeholder="เช่น https://example.com/payment-qr.png"
-                        value={qrCodeUrl}
-                        onChange={(e) => setQrCodeUrl(e.target.value)}
-                        className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
-                      />
+                      <div className="flex-1 flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="วาง URL รูปภาพที่นี่ หรือกดไอคอนขวาเพื่ออัปโหลด"
+                          value={qrCodeUrl}
+                          onChange={(e) => setQrCodeUrl(e.target.value)}
+                          className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
+                        />
+                        <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors">
+                          <Upload className="w-4 h-4" />
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => setQrCodeUrl(reader.result as string);
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
                       {qrCodeUrl && (
                         <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0">
                           <img src={qrCodeUrl} alt="QR Code Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />

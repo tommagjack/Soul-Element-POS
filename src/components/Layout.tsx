@@ -125,7 +125,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-[#8FB996] flex items-center justify-center text-white shrink-0 overflow-hidden">
             {settings.logo ? (
-              <img src={settings.logo} alt="" className="w-full h-full object-cover" />
+              <img src={settings.logo} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
               <Store className="w-4.5 h-4.5" />
             )}

@@ -322,7 +322,7 @@ export const SalesHistoryView: React.FC = () => {
       : '';
 
     const logoHtml = settings.logo
-      ? `<div style="text-align: center; margin-bottom: 8px;"><img src="${settings.logo}" style="max-height: 50px; object-contain: contain;" /></div>`
+      ? `<div style="text-align: center; margin-bottom: 8px;"><img src="${settings.logo}" style="max-height: 50px; object-contain: contain;" referrerpolicy="no-referrer" /></div>`
       : '';
 
     const vatHtml = settings.vat_rate > 0

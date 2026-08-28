@@ -389,7 +389,7 @@ export const UsersView: React.FC = () => {
                 <div className="relative group">
                   <div className="w-20 h-20 rounded-full bg-[#8FB996]/10 border-2 border-[#8FB996]/20 flex items-center justify-center overflow-hidden mb-2">
                     {formAvatar ? (
-                      <img src={formAvatar} alt="Avatar Preview" className="w-full h-full object-cover" />
+                      <img src={formAvatar} alt="Avatar Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
                       <UserIcon className="w-10 h-10 text-[#8FB996]/40" />
                     )}
