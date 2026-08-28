@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDb } from '../context/DbContext';
-import { Sale, SaleItem, Customer, Product } from '../types';
+import { Sale, SaleItem, Customer, Product, getProxyImage } from '../types';
 import {
   Search,
   Clock,
@@ -321,8 +321,12 @@ export const SalesHistoryView: React.FC = () => {
       ? `<div style="text-align: center; font-size: 11px; color: #444;">เลขผู้เสียภาษี: ${settings.tax_id}</div>` 
       : '';
 
-    const logoHtml = settings.logo
-      ? `<div style="text-align: center; margin-bottom: 8px;"><img src="${settings.logo}" style="max-height: 50px; object-contain: contain;" referrerpolicy="no-referrer" /></div>`
+    const processedLogo = settings.logo && !settings.logo.startsWith('data:') && !settings.logo.startsWith('blob:') && !settings.logo.includes('unsplash.com')
+      ? `https://images.weserv.nl/?url=${encodeURIComponent(settings.logo)}&n=-1`
+      : settings.logo;
+
+    const logoHtml = processedLogo
+      ? `<div style="text-align: center; margin-bottom: 8px;"><img src="${processedLogo}" style="max-height: 50px; object-contain: contain;" referrerpolicy="no-referrer" /></div>`
       : '';
 
     const vatHtml = settings.vat_rate > 0
@@ -766,7 +770,7 @@ export const SalesHistoryView: React.FC = () => {
                 <div className="text-center space-y-2 flex flex-col items-center justify-center pt-2">
                   {settings.logo && (
                     <img
-                      src={settings.logo}
+                      src={getProxyImage(settings.logo)}
                       alt="Store Logo"
                       className="max-h-16 max-w-full object-contain mb-2 rounded-lg"
                       referrerPolicy="no-referrer"

@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDb } from '../context/DbContext';
-import { Product, Customer, SaleItem, Coupon } from '../types';
+import { Product, Customer, SaleItem, Coupon, getProxyImage } from '../types';
 import {
   Search,
   ShoppingCart,
@@ -501,7 +501,7 @@ export const PosView: React.FC = () => {
                       {/* Image */}
                       <div className="w-full aspect-square rounded-xl overflow-hidden bg-white mb-3 relative">
                         <img
-                          src={p.image || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=200'}
+                          src={getProxyImage(p.image) || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=200'}
                           alt={p.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           referrerPolicy="no-referrer"
@@ -991,7 +991,7 @@ export const PosView: React.FC = () => {
                       {settings.qr_code_url ? (
                         <div className="w-40 h-40 flex items-center justify-center border border-[#EAF2EC] rounded-xl overflow-hidden bg-white p-1 shadow-inner">
                           <img
-                            src={settings.qr_code_url}
+                            src={getProxyImage(settings.qr_code_url)}
                             alt="QR Code สำหรับสแกนจ่าย"
                             className="max-w-full max-h-full object-contain"
                             referrerPolicy="no-referrer"
@@ -1094,7 +1094,7 @@ export const PosView: React.FC = () => {
                 <div className="text-center space-y-1 flex flex-col items-center justify-center pt-2">
                   {settings.logo && (
                     <img 
-                      src={settings.logo} 
+                      src={getProxyImage(settings.logo)} 
                       alt="Store Logo" 
                       className="max-h-14 max-w-full object-contain mb-2 rounded-lg" 
                       referrerPolicy="no-referrer"

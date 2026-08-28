@@ -30,6 +30,7 @@ import {
   Type
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getProxyImage } from '../types';
 
 interface LayoutProps {
   activeTab: string;
@@ -125,7 +126,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-[#8FB996] flex items-center justify-center text-white shrink-0 overflow-hidden">
             {settings.logo ? (
-              <img src={settings.logo} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <img src={getProxyImage(settings.logo)} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
               <Store className="w-4.5 h-4.5" />
             )}
@@ -157,7 +158,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
               <div className="w-10 h-10 rounded-xl bg-[#8FB996] flex items-center justify-center text-white shadow-sm shrink-0 overflow-hidden">
                 {settings.logo ? (
                   <img
-                    src={settings.logo}
+                    src={getProxyImage(settings.logo)}
                     alt={settings.store_name}
                     className="w-full h-full object-cover animate-fade-in"
                     referrerPolicy="no-referrer"
@@ -290,7 +291,7 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, childre
 
               <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 p-2 rounded-xl bg-white border border-[#EAF2EC]'}`}>
                 <img
-                  src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
+                  src={getProxyImage(currentUser.avatar) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
                   alt={currentUser.fullname}
                   className={`${isSidebarCollapsed ? 'w-10 h-10' : 'w-8 h-8'} rounded-full object-cover shrink-0 border border-[#EAF2EC]`}
                   referrerPolicy="no-referrer"

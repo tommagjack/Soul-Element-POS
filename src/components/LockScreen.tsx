@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useDb } from '../context/DbContext';
+import { getProxyImage } from '../types';
 import { Lock, Delete, ArrowRight, User as UserIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -61,7 +62,7 @@ export const LockScreen: React.FC = () => {
         <div className="mb-10 text-center">
           <div className="w-20 h-20 bg-white border-2 border-[#8FB996]/20 rounded-full flex items-center justify-center mb-4 mx-auto shadow-sm overflow-hidden">
             {currentUser.avatar ? (
-              <img src={currentUser.avatar} alt={currentUser.fullname} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <img src={getProxyImage(currentUser.avatar)} alt={currentUser.fullname} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
               <UserIcon className="w-10 h-10 text-[#8FB996]" />
             )}

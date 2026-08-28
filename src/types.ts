@@ -15,6 +15,14 @@ export interface User {
   lock_pin?: string;
 }
 
+export const getProxyImage = (url: string | undefined) => {
+  if (!url) return '';
+  if (url.startsWith('data:') || url.startsWith('blob:') || url.includes('unsplash.com')) {
+    return url;
+  }
+  return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&n=-1`;
+};
+
 export interface RolePermission {
   id: string;
   role: string;

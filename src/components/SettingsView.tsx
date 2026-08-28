@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useDb } from '../context/DbContext';
-import { StoreSettings } from '../types';
+import { StoreSettings, getProxyImage } from '../types';
 import {
   Settings,
   UserCheck,
@@ -18,7 +18,8 @@ import {
   CircleAlert,
   Inbox,
   CreditCard,
-  Upload
+  Upload,
+  Trash2
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
@@ -182,26 +183,49 @@ export const SettingsView: React.FC = () => {
                         onChange={(e) => setStoreLogo(e.target.value)}
                         className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
                       />
-                      <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors">
-                        <Upload className="w-4 h-4" />
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setStoreLogo(reader.result as string);
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                      </label>
+                      <div className="flex gap-1">
+                        <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors" title="อัปโหลดรูปภาพ">
+                          <Upload className="w-4 h-4" />
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 2 * 1024 * 1024) {
+                                  showToast('❌ ขนาดไฟล์ต้องไม่เกิน 2MB', 'error');
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onloadend = () => setStoreLogo(reader.result as string);
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                        {storeLogo && (
+                          <button
+                            onClick={() => setStoreLogo('')}
+                            className="w-10 h-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-100 shrink-0 transition-colors"
+                            title="ลบรูปภาพ"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {storeLogo && (
-                      <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0">
-                        <img src={storeLogo} alt="Logo Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                      <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                        <img 
+                          src={getProxyImage(storeLogo)} 
+                          alt="Logo Preview" 
+                          className="max-w-full max-h-full object-contain" 
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error';
+                          }}
+                        />
                       </div>
                     )}
                   </div>
@@ -290,26 +314,49 @@ export const SettingsView: React.FC = () => {
                           onChange={(e) => setQrCodeUrl(e.target.value)}
                           className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
                         />
-                        <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors">
-                          <Upload className="w-4 h-4" />
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => setQrCodeUrl(reader.result as string);
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                          />
-                        </label>
+                        <div className="flex gap-1">
+                          <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors" title="อัปโหลด QR Code">
+                            <Upload className="w-4 h-4" />
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              className="hidden" 
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  if (file.size > 2 * 1024 * 1024) {
+                                    showToast('❌ ขนาดไฟล์ต้องไม่เกิน 2MB', 'error');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => setQrCodeUrl(reader.result as string);
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                          {qrCodeUrl && (
+                            <button
+                              onClick={() => setQrCodeUrl('')}
+                              className="w-10 h-10 bg-red-50 text-red-400 rounded-xl flex items-center justify-center hover:bg-red-100 shrink-0 transition-colors"
+                              title="ลบ QR Code"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {qrCodeUrl && (
-                        <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0">
-                          <img src={qrCodeUrl} alt="QR Code Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                        <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                          <img 
+                            src={getProxyImage(qrCodeUrl)} 
+                            alt="QR Code Preview" 
+                            className="max-w-full max-h-full object-contain" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=Error';
+                            }}
+                          />
                         </div>
                       )}
                     </div>

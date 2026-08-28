@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useDb } from '../context/DbContext';
-import { Product, ProductCategory } from '../types';
+import { Product, ProductCategory, getProxyImage } from '../types';
 import {
   Plus,
   Edit2,
@@ -17,7 +17,8 @@ import {
   Inbox,
   AlertCircle,
   FileCheck2,
-  Boxes
+  Boxes,
+  Upload
 } from 'lucide-react';
 
 export const ProductsView: React.FC = () => {
@@ -323,7 +324,7 @@ export const ProductsView: React.FC = () => {
                     <tr key={p.id} className="hover:bg-[#F8FAF7]/30 transition-all">
                       <td className="py-3 px-5 shrink-0">
                         <img
-                          src={p.image || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=200'}
+                          src={getProxyImage(p.image) || 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=200'}
                           alt={p.name}
                           className="w-10 h-10 rounded-lg object-cover bg-gray-50 border border-[#EAF2EC]"
                           referrerPolicy="no-referrer"
@@ -586,13 +587,43 @@ export const ProductsView: React.FC = () => {
                 )}
 
                 <div className="md:col-span-2">
-                  <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รูปภาพตัวสินค้า (URL แหล่งอ้างอิง)</label>
-                  <input
-                    type="text"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    className="w-full text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
-                  />
+                  <label className="text-[10px] text-[#2F3E34]/55 font-bold uppercase block mb-1">รูปภาพตัวสินค้า (URL แหล่งอ้างอิง หรืออัปโหลด)</label>
+                  <div className="flex gap-4 items-center">
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="วาง URL รูปภาพที่นี่ หรือกดไอคอนขวาเพื่ออัปโหลด"
+                        value={formImage}
+                        onChange={(e) => setFormImage(e.target.value)}
+                        className="flex-1 text-xs bg-[#F8FAF7] border border-[#EAF2EC] rounded-xl px-3 py-2 text-[#2F3E34] focus:outline-none focus:ring-1 focus:ring-[#8FB996]"
+                      />
+                      <label className="w-10 h-10 bg-[#8FB996] text-white rounded-xl flex items-center justify-center cursor-pointer hover:bg-[#8FB996]/90 shrink-0 shadow-sm transition-colors">
+                        <Upload className="w-4 h-4" />
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 1 * 1024 * 1024) {
+                                alert('❌ ขนาดไฟล์รูปภาพต้องไม่เกิน 1MB');
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onloadend = () => setFormImage(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {formImage && (
+                      <div className="w-10 h-10 rounded-xl border border-[#EAF2EC] bg-white overflow-hidden flex items-center justify-center shrink-0">
+                        <img src={getProxyImage(formImage)} alt="Preview" className="max-w-full max-h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
