@@ -20,7 +20,7 @@ import { LockScreen } from './components/LockScreen';
 import { Lock, CircleAlert, RefreshCw } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { currentUser, rolesPermissions, settings, dbLoaded } = useDb();
+  const { currentUser, roles, settings, dbLoaded } = useDb();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   // Dynamically update document title based on Store Name
@@ -54,7 +54,7 @@ const AppContent: React.FC = () => {
     // Owner has supreme master access
     if (currentUser?.role === 'owner') return true;
 
-    const perm = rolesPermissions.find(p => p.role === currentUser?.role);
+    const perm = roles.find(p => p.role === currentUser?.role);
     if (!perm) return false;
 
     switch (tab) {

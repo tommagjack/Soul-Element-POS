@@ -214,7 +214,15 @@ export const DbProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         
         // Try to get from local storage first to see if we have existing data to seed if Firestore is empty
         const stored = localStorage.getItem(`pos_db_${collectionName}`);
-        const localData = stored ? JSON.parse(stored) : [];
+        let localData = [];
+        if (stored) {
+          try {
+            localData = JSON.parse(stored);
+            if (!Array.isArray(localData)) localData = [];
+          } catch (e) {
+            console.error(`Error parsing local storage for ${collectionName}:`, e);
+          }
+        }
         const seedData = localData.length > 0 ? localData : initialData;
 
         if (snapshot.empty) {
